@@ -1,0 +1,22 @@
+{
+  "name": "meteoraswap",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "generate:clients": "zx ./scripts/generate-clients.mjs",
+    "generate:idl": "shank idl -r program -o idl"
+  },
+  "devDependencies": {
+    "@codama/renderers-js": "^1.0.0",
+    "@codama/renderers-rust": "^1.0.0",
+    "@codama/nodes-from-anchor": "^1.1.6",
+    "codama": "^1.2.6",
+    "zx": "^8.3.2",
+    "@solana/spl-token": "0.4.9",
+    "@solana/web3.js": "^1.68.0"
+  },
+  "engines": {
+    "node": ">=v20.0.0"
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+}

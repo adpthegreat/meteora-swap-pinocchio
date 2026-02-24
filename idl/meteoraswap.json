@@ -1,0 +1,320 @@
+{
+  "version": "0.1.0",
+  "name": "meteoraswap",
+  "instructions": [
+    {
+      "name": "Swap",
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": false,
+          "isSigner": true,
+          "docs": [
+            "Transaction signer and token owner"
+          ]
+        },
+        {
+          "name": "lbPair",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "DLMM lb_pair for swap"
+          ]
+        },
+        {
+          "name": "binrrayBitmapExt",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Bin array bitmap extension for swap (pass DLMM program ID if unused)"
+          ]
+        },
+        {
+          "name": "reserveX",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Pool token X reserve for swap"
+          ]
+        },
+        {
+          "name": "reserveY",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Pool token Y reserve for swap"
+          ]
+        },
+        {
+          "name": "userTokenIn",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "User ATA for swap input token"
+          ]
+        },
+        {
+          "name": "userTokenOut",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "User ATA for swap output token"
+          ]
+        },
+        {
+          "name": "tokenXMint",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Token X mint for swap"
+          ]
+        },
+        {
+          "name": "tokenYMint",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Token Y mint for swap"
+          ]
+        },
+        {
+          "name": "oracle",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Oracle account for swap"
+          ]
+        },
+        {
+          "name": "hostFeeIn",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Host fee account for swap A (pass DLMM program ID if unused)"
+          ]
+        },
+        {
+          "name": "tokenXProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "SPL Token program for token X of swap"
+          ]
+        },
+        {
+          "name": "tokenYProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "SPL Token program for token Y of swap"
+          ]
+        },
+        {
+          "name": "memoProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Memo program"
+          ]
+        },
+        {
+          "name": "eventAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "DLMM event authority PDA for swap"
+          ]
+        },
+        {
+          "name": "dlmmProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Meteora DLMM program"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "amountIn",
+          "type": "u64"
+        },
+        {
+          "name": "minOut",
+          "type": "u64"
+        },
+        {
+          "name": "numBinrrays",
+          "type": "u8"
+        }
+      ],
+      "discriminant": {
+        "type": "u8",
+        "value": 0
+      }
+    },
+    {
+      "name": "Swap2",
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": false,
+          "isSigner": true,
+          "docs": [
+            "Transaction signer and token owner"
+          ]
+        },
+        {
+          "name": "instructionsSysvar",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Instructions sysvar (Sysvar1nstructions1111...)"
+          ]
+        },
+        {
+          "name": "lbPair",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "DLMM lb_pair for swap"
+          ]
+        },
+        {
+          "name": "binArrayBitmapExt",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Bin array bitmap extension for swap"
+          ]
+        },
+        {
+          "name": "reserveX",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Pool token X reserve for swap"
+          ]
+        },
+        {
+          "name": "reserveY",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Pool token Y reserve for swap"
+          ]
+        },
+        {
+          "name": "userTokenIn",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "User ATA for swap input token"
+          ]
+        },
+        {
+          "name": "userTokenOut",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "User ATA for swap output token"
+          ]
+        },
+        {
+          "name": "tokenXMint",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Token X mint for swap"
+          ]
+        },
+        {
+          "name": "tokenYMint",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Token Y mint for swap"
+          ]
+        },
+        {
+          "name": "oracle",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Oracle account for swap"
+          ]
+        },
+        {
+          "name": "hostFeeIn",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Host fee account for swap"
+          ]
+        },
+        {
+          "name": "tokenXProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "SPL Token program for token X of swap"
+          ]
+        },
+        {
+          "name": "tokenYProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "SPL Token program for token Y of swap"
+          ]
+        },
+        {
+          "name": "memoProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Memo program"
+          ]
+        },
+        {
+          "name": "eventAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "DLMM event authority PDA for swap"
+          ]
+        },
+        {
+          "name": "dlmmProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Meteora DLMM program"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "numBinrrays",
+          "type": "u8"
+        },
+        {
+          "name": "amountIn",
+          "type": "u64"
+        },
+        {
+          "name": "minOut",
+          "type": "u64"
+        }
+      ],
+      "discriminant": {
+        "type": "u8",
+        "value": 1
+      }
+    }
+  ],
+  "metadata": {
+    "origin": "shank",
+    "address": "2NCpU9nsgLfhqKX5CDVz24FfsZ8aRwjgUWtFbPsVZVu2"
+  }
+}

@@ -25,29 +25,6 @@ const FIXED_ACCOUNTS: usize = 16;
 const MAX_BIN_ARRAYS: usize = 8;
 const MAX_ACCOUNTS:   usize = FIXED_ACCOUNTS + MAX_BIN_ARRAYS;
 
-//! Meteora DLMM `swap2` CPI
-//!
-//! Program: LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo
-//!
-//! ### Accounts:
-//!   0.  `[WRITE]`   lb_pair
-//!   1.  `[WRITE]`   bin_array_bitmap_extension  (pass program ID if unused)
-//!   2.  `[WRITE]`   reserve_x
-//!   3.  `[WRITE]`   reserve_y
-//!   4.  `[WRITE]`   user_token_in
-//!   5.  `[WRITE]`   user_token_out
-//!   6.  `[]`        token_x_mint
-//!   7.  `[]`        token_y_mint
-//!   8.  `[WRITE]`   oracle
-//!   9.  `[WRITE]`   host_fee_in                 (pass program ID if no host)
-//!   10. `[SIGNER]`  user
-//!   11. `[]`        token_x_program
-//!   12. `[]`        token_y_program
-//!   13. `[]`        memo_program
-//!   14. `[]`        event_authority             (DLMM PDA)
-//!   15. `[]`        program                     (DLMM self-reference for event CPI)
-//!   +N  `[WRITE]`   bin_array_0 … bin_array_N   (remaining, max 8)
-
 pub struct Swap2<'a> {
     pub lb_pair:                    &'a AccountInfo,
     pub bitmap_ext: &'a AccountInfo,
@@ -86,18 +63,19 @@ impl Swap2<'_> {
         // [16..24] min_amount_out    u64 le
         // [24..30] RemainingAccountsInfo (borsh):
         // [u32 le = 1][type = 0x00 (BinArrays)][count: u8]
-        const DATA_LEN: usize = 30;
+        const DATA_LEN: usize = 28;
         let mut instruction_data = [UNINIT_BYTE; DATA_LEN];
 
         write_bytes(&mut instruction_data[0..8],  &DISCRIMINATOR);
         write_bytes(&mut instruction_data[8..16], &self.amount_in.to_le_bytes());
         write_bytes(&mut instruction_data[16..24], &self.min_amount_out.to_le_bytes());
-        write_bytes(&mut instruction_data[24..28], &1u32.to_le_bytes()); // vec len = 1
-        instruction_data[28].write(0x00);                                // AccountsType::BinArrays
-        instruction_data[29].write(num_bin_arrays as u8);
+        write_bytes(&mut instruction_data[24..28], &0u32.to_le_bytes()); // vec len = 0
+        //https://github.com/MeteoraAg/dlmm-sdk/blob/40f72d72419cd0b677910f65fe4e6595cf935911/market_making/src/core.rs#L431 
+        //add remaining accounts infos if you have transfer hook (token2022) acounts
 
-        //we dont'se use a Vec of AccountMetas because the Vec array allocations take up heap 
+        //we don't use a Vec of AccountMetas because the Vec array allocations take up heap 
         //storage which results in more CUs
+
         //we can also use array_ref
         let total = FIXED_ACCOUNTS + num_bin_arrays;
         let mut metas: [MaybeUninit<AccountMeta>; MAX_ACCOUNTS] =

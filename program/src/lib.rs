@@ -10,7 +10,7 @@ pub mod entrypoint;
 
 use core::mem::MaybeUninit;
 // TODO update with your program ID
-pinocchio_pubkey::declare_id!("2NCpU9nsgLfhqKX5CDVz24FfsZ8aRwjgUWtFbPsVZVu2");
+pinocchio_pubkey::declare_id!("328qAGodo42PEsCjQyJBsyEc4pz3HsqBkVJFDFJkF8CQ");
 
 /// Uninitialized byte sentinel – avoids zero-filling instruction data buffers.
 pub(crate) const UNINIT_BYTE: MaybeUninit<u8> = MaybeUninit::<u8>::uninit();

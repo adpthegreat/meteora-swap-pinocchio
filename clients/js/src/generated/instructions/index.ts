@@ -6,5 +6,5 @@
  * @see https://github.com/codama-idl/codama
  */
 
-export * from './swap';
-export * from './swap2';
+export * from "./swap";
+export * from "./swap2";

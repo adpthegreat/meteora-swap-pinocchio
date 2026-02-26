@@ -8,4 +8,4 @@
 use solana_pubkey::{pubkey, Pubkey};
 
 /// `meteoraswap` program ID.
-pub const METEORASWAP_ID: Pubkey = pubkey!("2NCpU9nsgLfhqKX5CDVz24FfsZ8aRwjgUWtFbPsVZVu2");
+pub const METEORASWAP_ID: Pubkey = pubkey!("328qAGodo42PEsCjQyJBsyEc4pz3HsqBkVJFDFJkF8CQ");

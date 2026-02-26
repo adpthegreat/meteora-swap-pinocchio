@@ -90,7 +90,11 @@ impl Swap2<'_> {
         metas[6].write(AccountMeta::readonly(self.token_x_mint.key()));
         metas[7].write(AccountMeta::readonly(self.token_y_mint.key()));
         metas[8].write(AccountMeta::writable(self.oracle.key()));
-        metas[9].write(AccountMeta::writable(self.host_fee_in.key()));
+        metas[9].write(if self.host_fee_in.key() == &ID {
+            AccountMeta::readonly(self.program.key())
+        } else { 
+            AccountMeta::writable(self.host_fee_in.key())
+        });
         metas[10].write(AccountMeta::readonly_signer(self.user.key()));
         metas[11].write(AccountMeta::readonly(self.token_x_program.key()));
         metas[12].write(AccountMeta::readonly(self.token_y_program.key()));
@@ -124,10 +128,6 @@ impl Swap2<'_> {
 
         for (i, bin_array) in self.bin_arrays.iter().enumerate() {
             infos[FIXED_ACCOUNTS + i].write(bin_array);
-        }
-
-        for i in num_bin_arrays..MAX_BIN_ARRAYS {
-            infos[FIXED_ACCOUNTS + i].write(self.lb_pair);
         }
 
         // SAFETY: every slot is now initialised.

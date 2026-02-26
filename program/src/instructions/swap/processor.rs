@@ -42,9 +42,9 @@ impl Swap<'_> {
             memo_program:    self.accounts.memo_program,
             event_authority: self.accounts.event_auth ,
             program:         self.accounts.dlmm_program,
-            bin_arrays:      self.accounts.bin_arrays ,
+            bin_arrays:      self.accounts.bin_arrays,
             amount_in:       self.data.amount_in,
-            min_amount_out:  self.data.min_out ,
+            min_amount_out:  self.data.min_out,
         }.invoke()?;
         Ok(())
     }

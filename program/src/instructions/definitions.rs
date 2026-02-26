@@ -51,7 +51,7 @@ pub enum MeteoraSwapInstruction {
     /// `expected_ix_index` in this transaction, optionally assert its pool is
     /// `expected_lb_pair`, then execute swap B via CPI.
     #[account(0,  signer,   name = "user",                   desc = "Transaction signer and token owner")]
-    #[account(1,            name = "instructions_sysvar",    desc = "Instructions sysvar (Sysvar1nstructions1111...)")]
+    #[account(1,            name = "instructions_sysvar",    desc = "Instructions sysvar (Sysvar1nstructions1111...)")] //TODO move it down 
     #[account(2,  writable, name = "lb_pair",              desc = "DLMM lb_pair for swap")]
     #[account(3,  writable, name = "bin_array_bitmap_ext", desc = "Bin array bitmap extension for swap")]
     #[account(4,  writable, name = "reserve_x",            desc = "Pool token X reserve for swap")]
@@ -68,11 +68,11 @@ pub enum MeteoraSwapInstruction {
     #[account(15,           name = "event_authority",      desc = "DLMM event authority PDA for swap")]
     #[account(16,           name = "dlmm_program",           desc = "Meteora DLMM program")]
     Swap2 {
-        /// Number of bin-array remaining accounts for swap B.
-        num_binrrays: u8,
         /// Amount of input token to sell on pool B.
         amount_in: u64,
         /// Minimum output token to accept from pool B.
         min_out: u64,
+        /// Number of bin-array remaining accounts for swap B.
+        num_binrrays: u8,
     },
 }

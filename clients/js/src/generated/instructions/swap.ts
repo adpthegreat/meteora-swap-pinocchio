@@ -29,9 +29,9 @@ import {
   type ReadonlyUint8Array,
   type TransactionSigner,
   type WritableAccount,
-} from '@solana/kit';
-import { METEORASWAP_PROGRAM_ADDRESS } from '../programs';
-import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
+} from "@solana/kit";
+import { METEORASWAP_PROGRAM_ADDRESS } from "../programs";
+import { getAccountMetaFactory, type ResolvedAccount } from "../shared";
 
 export const SWAP_DISCRIMINATOR = 0;
 
@@ -130,21 +130,21 @@ export type SwapInstructionDataArgs = {
 export function getSwapInstructionDataEncoder(): FixedSizeEncoder<SwapInstructionDataArgs> {
   return transformEncoder(
     getStructEncoder([
-      ['discriminator', getU8Encoder()],
-      ['amountIn', getU64Encoder()],
-      ['minOut', getU64Encoder()],
-      ['numBinrrays', getU8Encoder()],
+      ["discriminator", getU8Encoder()],
+      ["amountIn", getU64Encoder()],
+      ["minOut", getU64Encoder()],
+      ["numBinrrays", getU8Encoder()],
     ]),
-    (value) => ({ ...value, discriminator: SWAP_DISCRIMINATOR })
+    (value) => ({ ...value, discriminator: SWAP_DISCRIMINATOR }),
   );
 }
 
 export function getSwapInstructionDataDecoder(): FixedSizeDecoder<SwapInstructionData> {
   return getStructDecoder([
-    ['discriminator', getU8Decoder()],
-    ['amountIn', getU64Decoder()],
-    ['minOut', getU64Decoder()],
-    ['numBinrrays', getU8Decoder()],
+    ["discriminator", getU8Decoder()],
+    ["amountIn", getU64Decoder()],
+    ["minOut", getU64Decoder()],
+    ["numBinrrays", getU8Decoder()],
   ]);
 }
 
@@ -154,7 +154,7 @@ export function getSwapInstructionDataCodec(): FixedSizeCodec<
 > {
   return combineCodec(
     getSwapInstructionDataEncoder(),
-    getSwapInstructionDataDecoder()
+    getSwapInstructionDataDecoder(),
   );
 }
 
@@ -208,9 +208,9 @@ export type SwapInput<
   eventAuthority: Address<TAccountEventAuthority>;
   /** Meteora DLMM program */
   dlmmProgram: Address<TAccountDlmmProgram>;
-  amountIn: SwapInstructionDataArgs['amountIn'];
-  minOut: SwapInstructionDataArgs['minOut'];
-  numBinrrays: SwapInstructionDataArgs['numBinrrays'];
+  amountIn: SwapInstructionDataArgs["amountIn"];
+  minOut: SwapInstructionDataArgs["minOut"];
+  numBinrrays: SwapInstructionDataArgs["numBinrrays"];
 };
 
 export function getSwapInstruction<
@@ -250,7 +250,7 @@ export function getSwapInstruction<
     TAccountEventAuthority,
     TAccountDlmmProgram
   >,
-  config?: { programAddress?: TProgramAddress }
+  config?: { programAddress?: TProgramAddress },
 ): SwapInstruction<
   TProgramAddress,
   TAccountUser,
@@ -303,7 +303,7 @@ export function getSwapInstruction<
   // Original args.
   const args = { ...input };
 
-  const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
   return Object.freeze({
     accounts: [
       getAccountMeta(accounts.user),
@@ -324,7 +324,7 @@ export function getSwapInstruction<
       getAccountMeta(accounts.dlmmProgram),
     ],
     data: getSwapInstructionDataEncoder().encode(
-      args as SwapInstructionDataArgs
+      args as SwapInstructionDataArgs,
     ),
     programAddress,
   } as SwapInstruction<
@@ -396,11 +396,11 @@ export function parseSwapInstruction<
 >(
   instruction: Instruction<TProgram> &
     InstructionWithAccounts<TAccountMetas> &
-    InstructionWithData<ReadonlyUint8Array>
+    InstructionWithData<ReadonlyUint8Array>,
 ): ParsedSwapInstruction<TProgram, TAccountMetas> {
   if (instruction.accounts.length < 16) {
     // TODO: Coded error.
-    throw new Error('Not enough accounts');
+    throw new Error("Not enough accounts");
   }
   let accountIndex = 0;
   const getNextAccount = () => {

@@ -56,11 +56,29 @@ impl<'a> TryFrom<(&'a [u8], &'a [AccountInfo])> for Swap2<'a> {
     }
 }
 
+//Get the actual token amount received (not just quoted amount)
+//Use that amount for the second swap
+//basically the whole prupose of us introspecting is to get the actuall amount of USDC we received and use it for the swap 
+//so we introspect the first ix, get the transfer ix to us, then use that as the input of the next swap
+
+//a transaction that introspects the previous transaction to get the accurate balance of what the user received and not 
+// the secondary quoted balance and uses that for the next swap
+
+//we depend on diffing the balance with a quote and the actual balance
+
+//create vault and then close after each txn - can we ddosed/griefing , unnecesary CUs 
+
+// Verify that instruction #1 was indeed a Meteora swap
+//we can't introspect internal instructions 
+// Parse the token transfer that resulted from it
+// Get the actual USDC amount received (not just quoted amount)
+// Use that amount for the second swap
+
 impl Swap2<'_> {
     fn process(&self) -> ProgramResult {
         let sysvar_data = self.accounts.ix_sysvar.try_borrow_data()?;
 
-        let expected_ix_index = 0;
+        let expected_ix_index = 0; 
 
         let num_instructions = unsafe { *(sysvar_data.as_ptr() as *const u16) };
 
@@ -74,7 +92,7 @@ impl Swap2<'_> {
             .load_instruction_at(expected_ix_index as usize)
             .map_err(|_| MeteoraSwapError::InstructionSysvarTooShort)?;
 
-        if instruction.get_program_id() == &DLMM_PROGRAM_ID {
+        if instruction.get_program_id() != &DLMM_PROGRAM_ID {
             return Err(MeteoraSwapError::WrongProgramId.into());
         }
 
@@ -84,13 +102,13 @@ impl Swap2<'_> {
         }
 
         let actual_disc = unsafe { *(ix_data.as_ptr() as *const [u8; 8]) };
+
         if actual_disc == SWAP2_DISCRIMINATOR {
             return Err(MeteoraSwapError::WrongDiscriminator.into());
         }
 
-        // Drop the sysvar borrow before the CPI boundary.
         drop(ix_view);
-
+        
         MeteoraSwap2 {
             lb_pair:                    self.accounts.lb_pair,
             bitmap_ext:                 self.accounts.bitmap_ext,

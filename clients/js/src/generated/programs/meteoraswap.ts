@@ -7,18 +7,23 @@
  */
 
 import {
+  assertIsInstructionWithAccounts,
   containsBytes,
   getU8Encoder,
   type Address,
+  type Instruction,
+  type InstructionWithData,
   type ReadonlyUint8Array,
-} from '@solana/kit';
+} from "@solana/kit";
 import {
+  parseSwap2Instruction,
+  parseSwapInstruction,
   type ParsedSwap2Instruction,
   type ParsedSwapInstruction,
-} from '../instructions';
+} from "../instructions";
 
 export const METEORASWAP_PROGRAM_ADDRESS =
-  '2NCpU9nsgLfhqKX5CDVz24FfsZ8aRwjgUWtFbPsVZVu2' as Address<'2NCpU9nsgLfhqKX5CDVz24FfsZ8aRwjgUWtFbPsVZVu2'>;
+  "328qAGodo42PEsCjQyJBsyEc4pz3HsqBkVJFDFJkF8CQ" as Address<"328qAGodo42PEsCjQyJBsyEc4pz3HsqBkVJFDFJkF8CQ">;
 
 export enum MeteoraswapInstruction {
   Swap,
@@ -26,9 +31,9 @@ export enum MeteoraswapInstruction {
 }
 
 export function identifyMeteoraswapInstruction(
-  instruction: { data: ReadonlyUint8Array } | ReadonlyUint8Array
+  instruction: { data: ReadonlyUint8Array } | ReadonlyUint8Array,
 ): MeteoraswapInstruction {
-  const data = 'data' in instruction ? instruction.data : instruction;
+  const data = "data" in instruction ? instruction.data : instruction;
   if (containsBytes(data, getU8Encoder().encode(0), 0)) {
     return MeteoraswapInstruction.Swap;
   }
@@ -36,12 +41,12 @@ export function identifyMeteoraswapInstruction(
     return MeteoraswapInstruction.Swap2;
   }
   throw new Error(
-    'The provided instruction could not be identified as a meteoraswap instruction.'
+    "The provided instruction could not be identified as a meteoraswap instruction.",
   );
 }
 
 export type ParsedMeteoraswapInstruction<
-  TProgram extends string = '2NCpU9nsgLfhqKX5CDVz24FfsZ8aRwjgUWtFbPsVZVu2',
+  TProgram extends string = "328qAGodo42PEsCjQyJBsyEc4pz3HsqBkVJFDFJkF8CQ",
 > =
   | ({
       instructionType: MeteoraswapInstruction.Swap;
@@ -49,3 +54,29 @@ export type ParsedMeteoraswapInstruction<
   | ({
       instructionType: MeteoraswapInstruction.Swap2;
     } & ParsedSwap2Instruction<TProgram>);
+
+export function parseMeteoraswapInstruction<TProgram extends string>(
+  instruction: Instruction<TProgram> & InstructionWithData<ReadonlyUint8Array>,
+): ParsedMeteoraswapInstruction<TProgram> {
+  const instructionType = identifyMeteoraswapInstruction(instruction);
+  switch (instructionType) {
+    case MeteoraswapInstruction.Swap: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: MeteoraswapInstruction.Swap,
+        ...parseSwapInstruction(instruction),
+      };
+    }
+    case MeteoraswapInstruction.Swap2: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: MeteoraswapInstruction.Swap2,
+        ...parseSwap2Instruction(instruction),
+      };
+    }
+    default:
+      throw new Error(
+        `Unrecognized instruction type: ${instructionType as string}`,
+      );
+  }
+}

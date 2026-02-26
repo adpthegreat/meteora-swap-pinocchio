@@ -6,7 +6,7 @@ use crate::{write_bytes, UNINIT_BYTE};
 
 //https://github.com/MeteoraAg/dlmm-sdk/blob/main/idls/dlmm.json#L7681 IDL reference for the types
 
-const BASE_DATA_LEN: usize = 28; // discriminator + amounts + remaining_accounts_info
+const BASE_DATA_LEN: usize = 28; // discriminator + amounts + empty remaining_accounts_info
 
 
 #[derive(Clone, Debug, PartialEq)]

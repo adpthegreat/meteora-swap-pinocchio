@@ -19,7 +19,7 @@ use pinocchio::{account_info::AccountInfo, program_error::ProgramError};
 //   13. `[]`        memo_program
 //   14. `[]`        event_authority 
 //   15. `[]`        dlmm_program
-//   +N  `[WRITE]`   bin arrays for swap A  (N = num_bin rrays )
+//   +N  `[WRITE]`   bin arrays for swap A  (N = num_bin_arrays )
 //
 // ### Instruction data (after discriminator):
 //   [0..8]    amount_in        u64 le
@@ -67,7 +67,7 @@ impl<'a> SwapAccounts<'a> {
             return Err(ProgramError::NotEnoughAccountKeys);
         }
 
-        let bin_arrays = remaining;
+        let bin_arrays = &remaining[..num_bin_arrays];
 
         Ok(Self {
             user,

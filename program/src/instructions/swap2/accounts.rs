@@ -27,7 +27,7 @@ pub struct Swap2Accounts<'a> {
 impl<'a> Swap2Accounts<'a> {
     pub fn try_from_slice(
         accounts: &'a [AccountInfo],
-        numin_arrays: usize,
+        num_bin_arrays: usize,
     ) -> Result<Self, ProgramError> {
         let [
             user, ix_sysvar,
@@ -40,17 +40,19 @@ impl<'a> Swap2Accounts<'a> {
             return Err(ProgramError::NotEnoughAccountKeys);
         };
 
-        if remaining.len() < numin_arrays {
+        if remaining.len() < num_bin_arrays {
             return Err(ProgramError::NotEnoughAccountKeys);
         }
 
+        let bin_arrays = &remaining[..num_bin_arrays];
+        
         Ok(Self {
             user, ix_sysvar,
             lb_pair, bitmap_ext, reserve_x, reserve_y,
             token_in, token_out, mint_x, mint_y,
             oracle, host_fee, token_prog_x, token_prog_y,
             memo_program, event_auth, dlmm_program,
-            bin_arrays: &remaining[..numin_arrays],
+            bin_arrays,
         })
     }
 }

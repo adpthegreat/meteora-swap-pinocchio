@@ -29,9 +29,9 @@ import {
   type ReadonlyUint8Array,
   type TransactionSigner,
   type WritableAccount,
-} from '@solana/kit';
-import { METEORASWAP_PROGRAM_ADDRESS } from '../programs';
-import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
+} from "@solana/kit";
+import { METEORASWAP_PROGRAM_ADDRESS } from "../programs";
+import { getAccountMetaFactory, type ResolvedAccount } from "../shared";
 
 export const SWAP2_DISCRIMINATOR = 1;
 
@@ -42,9 +42,8 @@ export function getSwap2DiscriminatorBytes() {
 export type Swap2Instruction<
   TProgram extends string = typeof METEORASWAP_PROGRAM_ADDRESS,
   TAccountUser extends string | AccountMeta<string> = string,
-  TAccountInstructionsSysvar extends
-    | string
-    | AccountMeta<string> = 'Sysvar1nstructions1111111111111111111111111',
+  TAccountInstructionsSysvar extends string | AccountMeta<string> =
+    "Sysvar1nstructions1111111111111111111111111",
   TAccountLbPair extends string | AccountMeta<string> = string,
   TAccountBinArrayBitmapExt extends string | AccountMeta<string> = string,
   TAccountReserveX extends string | AccountMeta<string> = string,
@@ -122,35 +121,35 @@ export type Swap2Instruction<
 
 export type Swap2InstructionData = {
   discriminator: number;
-  numBinrrays: number;
   amountIn: bigint;
   minOut: bigint;
+  numBinrrays: number;
 };
 
 export type Swap2InstructionDataArgs = {
-  numBinrrays: number;
   amountIn: number | bigint;
   minOut: number | bigint;
+  numBinrrays: number;
 };
 
 export function getSwap2InstructionDataEncoder(): FixedSizeEncoder<Swap2InstructionDataArgs> {
   return transformEncoder(
     getStructEncoder([
-      ['discriminator', getU8Encoder()],
-      ['numBinrrays', getU8Encoder()],
-      ['amountIn', getU64Encoder()],
-      ['minOut', getU64Encoder()],
+      ["discriminator", getU8Encoder()],
+      ["amountIn", getU64Encoder()],
+      ["minOut", getU64Encoder()],
+      ["numBinrrays", getU8Encoder()],
     ]),
-    (value) => ({ ...value, discriminator: SWAP2_DISCRIMINATOR })
+    (value) => ({ ...value, discriminator: SWAP2_DISCRIMINATOR }),
   );
 }
 
 export function getSwap2InstructionDataDecoder(): FixedSizeDecoder<Swap2InstructionData> {
   return getStructDecoder([
-    ['discriminator', getU8Decoder()],
-    ['numBinrrays', getU8Decoder()],
-    ['amountIn', getU64Decoder()],
-    ['minOut', getU64Decoder()],
+    ["discriminator", getU8Decoder()],
+    ["amountIn", getU64Decoder()],
+    ["minOut", getU64Decoder()],
+    ["numBinrrays", getU8Decoder()],
   ]);
 }
 
@@ -160,7 +159,7 @@ export function getSwap2InstructionDataCodec(): FixedSizeCodec<
 > {
   return combineCodec(
     getSwap2InstructionDataEncoder(),
-    getSwap2InstructionDataDecoder()
+    getSwap2InstructionDataDecoder(),
   );
 }
 
@@ -217,9 +216,9 @@ export type Swap2Input<
   eventAuthority: Address<TAccountEventAuthority>;
   /** Meteora DLMM program */
   dlmmProgram: Address<TAccountDlmmProgram>;
-  numBinrrays: Swap2InstructionDataArgs['numBinrrays'];
-  amountIn: Swap2InstructionDataArgs['amountIn'];
-  minOut: Swap2InstructionDataArgs['minOut'];
+  amountIn: Swap2InstructionDataArgs["amountIn"];
+  minOut: Swap2InstructionDataArgs["minOut"];
+  numBinrrays: Swap2InstructionDataArgs["numBinrrays"];
 };
 
 export function getSwap2Instruction<
@@ -261,7 +260,7 @@ export function getSwap2Instruction<
     TAccountEventAuthority,
     TAccountDlmmProgram
   >,
-  config?: { programAddress?: TProgramAddress }
+  config?: { programAddress?: TProgramAddress },
 ): Swap2Instruction<
   TProgramAddress,
   TAccountUser,
@@ -322,10 +321,10 @@ export function getSwap2Instruction<
   // Resolve default values.
   if (!accounts.instructionsSysvar.value) {
     accounts.instructionsSysvar.value =
-      'Sysvar1nstructions1111111111111111111111111' as Address<'Sysvar1nstructions1111111111111111111111111'>;
+      "Sysvar1nstructions1111111111111111111111111" as Address<"Sysvar1nstructions1111111111111111111111111">;
   }
 
-  const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
   return Object.freeze({
     accounts: [
       getAccountMeta(accounts.user),
@@ -347,7 +346,7 @@ export function getSwap2Instruction<
       getAccountMeta(accounts.dlmmProgram),
     ],
     data: getSwap2InstructionDataEncoder().encode(
-      args as Swap2InstructionDataArgs
+      args as Swap2InstructionDataArgs,
     ),
     programAddress,
   } as Swap2Instruction<
@@ -422,11 +421,11 @@ export function parseSwap2Instruction<
 >(
   instruction: Instruction<TProgram> &
     InstructionWithAccounts<TAccountMetas> &
-    InstructionWithData<ReadonlyUint8Array>
+    InstructionWithData<ReadonlyUint8Array>,
 ): ParsedSwap2Instruction<TProgram, TAccountMetas> {
   if (instruction.accounts.length < 17) {
     // TODO: Coded error.
-    throw new Error('Not enough accounts');
+    throw new Error("Not enough accounts");
   }
   let accountIndex = 0;
   const getNextAccount = () => {

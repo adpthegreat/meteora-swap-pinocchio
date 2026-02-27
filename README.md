@@ -3,6 +3,7 @@
 Inspired by this reply to a tweet https://x.com/deanmlittle/status/2025787879461634315?s=20
 
 
+```
 Pattern A: Both Swaps
 [Router]
   ├─> Swap A (CPI)
@@ -16,6 +17,7 @@ Pattern B: Introspect + 1 CPI
 [Router]
   └─> Swap B (CPI)
         └─> SwapProgram x2
+```
 
 ## Build
 

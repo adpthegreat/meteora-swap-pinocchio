@@ -1,6 +1,21 @@
-# Pinocchio Solana program template
+# Meteora Swaps 
 
-This is a template for optimized Solana program development using the Pinocchio framework. This template was built by [Exo Technologies](https://exotechnologies.xyz).
+Inspired by this reply to a tweet https://x.com/deanmlittle/status/2025787879461634315?s=20
+
+
+Pattern A: Both Swaps
+[Router]
+  ├─> Swap A (CPI)
+  │     └─> SwapProgram x2
+  └─> Swap B (CPI)
+        └─> SwapProgram x2
+
+Pattern B: Introspect + 1 CPI
+[Swap A top-level]   
+  └─> SwapProgram x2
+[Router]
+  └─> Swap B (CPI)
+        └─> SwapProgram x2
 
 ## Build
 
@@ -46,35 +61,17 @@ yarn generate:clients
 
 ## Running Tests
 
-Integration tests are written using [LiteSvm](https://github.com/LiteSVM/litesvm). To run integration tests, from project root build and then run
-
-```
-cargo test
-```
-https://github.com/MeteoraAg/dlmm-sdk/blob/main/ts-client/src/examples 
-
-Pattern A: Router Both Swaps
-[Router]
-  ├─> Swap A (CPI)
-  │     └─> TokenProgram x2
-  └─> Swap B (CPI)
-        └─> TokenProgram x2
-
-Pattern B: Introspect + 1 CPI
-[Swap A top-level]   <-- no nested invoke
-  └─> TokenProgram x2
-[Router]
-  └─> Swap B (CPI)
-        └─> TokenProgram x2
+yarn run test:1
+yarn run test:2
 
 
+## Take Note
+- ansi_term , cipher - duplicates in Cargo.lock from the github.com/exo-tech-xyz/pinocchio-project template that i used, will make PR
 
-//ansi_term , cipher - duplicates in Cargo.lock from the github.com/exo-tech-xyz/pinocchio-project need to make PR
-
-//then fix base64ct build error by downgrading it https://solana.stackexchange.com/questions/23578/how-to-build-with-solana-program-3-0-0-cargo-build-sbf-3-0-6-fails-with-edition
+- then fixed base64ct `cargo build-sbf` build error by downgrading it https://solana.stackexchange.com/questions/23578/how-to-build-with-solana-program-3-0-0-cargo-build-sbf-3-0-6-fails-with-edition
 
 
-Run in terminal to get/verify hex 
+## Quick script to convert base58 address to hex
 ```python
 python3 -c "
 import base64, struct
@@ -91,9 +88,8 @@ print(', '.join(f'0x{b:02X}' for b in key))
 "
 ```
 
-
 Also for discriminators
-```
+```python
 python3 -c "
 import hashlib
 h = hashlib.sha256(b'global:swap2').digest()
@@ -102,3 +98,4 @@ print('Got:      ', '0x41, 0x4B, 0x3F, 0x4C, 0xEB, 0x5B, 0x5B, 0x88')
 print('Match:', h[:8] == bytes([0x41, 0x4B, 0x3F, 0x4C, 0xEB, 0x5B, 0x5B, 0x88]))
 "
 ```
+

@@ -22,7 +22,7 @@
           ]
         },
         {
-          "name": "binrrayBitmapExt",
+          "name": "binArrayBitmapExt",
           "isMut": true,
           "isSigner": false,
           "docs": [
@@ -144,7 +144,7 @@
           "type": "u64"
         },
         {
-          "name": "numBinrrays",
+          "name": "numBinArrays",
           "type": "u8"
         }
       ],
@@ -295,16 +295,16 @@
       ],
       "args": [
         {
-          "name": "numBinrrays",
-          "type": "u8"
-        },
-        {
           "name": "amountIn",
           "type": "u64"
         },
         {
           "name": "minOut",
           "type": "u64"
+        },
+        {
+          "name": "numBinArrays",
+          "type": "u8"
         }
       ],
       "discriminant": {
@@ -315,6 +315,6 @@
   ],
   "metadata": {
     "origin": "shank",
-    "address": "2NCpU9nsgLfhqKX5CDVz24FfsZ8aRwjgUWtFbPsVZVu2"
+    "address": "328qAGodo42PEsCjQyJBsyEc4pz3HsqBkVJFDFJkF8CQ"
   }
 }

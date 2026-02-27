@@ -12,7 +12,6 @@ use core::mem::MaybeUninit;
 // TODO update with your program ID
 pinocchio_pubkey::declare_id!("328qAGodo42PEsCjQyJBsyEc4pz3HsqBkVJFDFJkF8CQ");
 
-/// Uninitialized byte sentinel – avoids zero-filling instruction data buffers.
 pub(crate) const UNINIT_BYTE: MaybeUninit<u8> = MaybeUninit::<u8>::uninit();
 
 /// Write `source` bytes into a `MaybeUninit<u8>` destination slice.

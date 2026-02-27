@@ -123,13 +123,13 @@ export type Swap2InstructionData = {
   discriminator: number;
   amountIn: bigint;
   minOut: bigint;
-  numBinrrays: number;
+  numBinArrays: number;
 };
 
 export type Swap2InstructionDataArgs = {
   amountIn: number | bigint;
   minOut: number | bigint;
-  numBinrrays: number;
+  numBinArrays: number;
 };
 
 export function getSwap2InstructionDataEncoder(): FixedSizeEncoder<Swap2InstructionDataArgs> {
@@ -138,7 +138,7 @@ export function getSwap2InstructionDataEncoder(): FixedSizeEncoder<Swap2Instruct
       ["discriminator", getU8Encoder()],
       ["amountIn", getU64Encoder()],
       ["minOut", getU64Encoder()],
-      ["numBinrrays", getU8Encoder()],
+      ["numBinArrays", getU8Encoder()],
     ]),
     (value) => ({ ...value, discriminator: SWAP2_DISCRIMINATOR }),
   );
@@ -149,7 +149,7 @@ export function getSwap2InstructionDataDecoder(): FixedSizeDecoder<Swap2Instruct
     ["discriminator", getU8Decoder()],
     ["amountIn", getU64Decoder()],
     ["minOut", getU64Decoder()],
-    ["numBinrrays", getU8Decoder()],
+    ["numBinArrays", getU8Decoder()],
   ]);
 }
 
@@ -218,7 +218,7 @@ export type Swap2Input<
   dlmmProgram: Address<TAccountDlmmProgram>;
   amountIn: Swap2InstructionDataArgs["amountIn"];
   minOut: Swap2InstructionDataArgs["minOut"];
-  numBinrrays: Swap2InstructionDataArgs["numBinrrays"];
+  numBinArrays: Swap2InstructionDataArgs["numBinArrays"];
 };
 
 export function getSwap2Instruction<

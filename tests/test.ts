@@ -8,7 +8,7 @@ import {
   TransactionInstruction,
 } from '@solana/web3.js';
 import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID } from '@solana/spl-token';
-import DLMM, { binIdToBinArrayIndex, deriveBinArray } from '@meteora-ag/dlmm-sdk-public';
+import DLMM from '@meteora-ag/dlmm-sdk-public';
 import BN from 'bn.js';
 import { assert } from 'chai';
 import { getSwapInstruction } from '../clients/js/src/generated/instructions/swap.ts';
@@ -18,7 +18,7 @@ import { address } from '@solana/kit';
 
 // Connect to local Surfpool instance (mirrors mainnet)
 const CONNECTION = new Connection('http://127.0.0.1:8899', 'confirmed');
-const CONNECTION1 = new Connection('https://api.mainnet.solana.com','confirmed' )
+const CONNECTION1 = new Connection('https://api.mainnet.solana.com', 'confirmed')
 // Mainnet Mints
 const WSOL_MINT = new PublicKey('So11111111111111111111111111111111111111112');
 const USDC_MINT = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');
@@ -34,13 +34,12 @@ const METEORA_DLMM_PROGRAM_ID = new PublicKey('LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSD
 
 const MEMO_PROGRAM_ID = new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr');
 
- const [eventAuthorityPda] = PublicKey.findProgramAddressSync(
-   [Buffer.from('__event_authority')],
-   METEORA_DLMM_PROGRAM_ID
- );
+const [eventAuthorityPda] = PublicKey.findProgramAddressSync(
+  [Buffer.from('__event_authority')],
+  METEORA_DLMM_PROGRAM_ID
+);
 
- console.log(`this is the event authority ${eventAuthorityPda}`)
-describe('Meteora Two-Hop Swaps', () => {
+describe('Meteora Two Swaps', () => {
   let user: Keypair;
   let dlmmSolUsdc: DLMM;
   let dlmmUsdcUsdt: DLMM;
@@ -55,23 +54,19 @@ describe('Meteora Two-Hop Swaps', () => {
     userUsdcAta = getAssociatedTokenAddressSync(USDC_MINT, user.publicKey);
     userUsdtAta = getAssociatedTokenAddressSync(USDT_MINT, user.publicKey);
 
-    // 1. Airdrop SOL for gas
     await surfnetAirdrop(CONNECTION, user.publicKey.toBase58(), 10 * 10 ** 9);
 
-    // 2. Airdrop Initial wSOL for the swap input using Surfpool utility
-    // Giving the user 10 wSOL
     await surfnetTokenAirdrop(CONNECTION, user.publicKey.toBase58(), WSOL_MINT.toBase58(), 10 * 10 ** 9);
-    
-    // Initialize required ATAs with 0 balance so they exist
+
+
     await surfnetTokenAirdrop(CONNECTION, user.publicKey.toBase58(), USDC_MINT.toBase58(), 0);
     await surfnetTokenAirdrop(CONNECTION, user.publicKey.toBase58(), USDT_MINT.toBase58(), 0);
 
-    // 3. Initialize DLMM SDK instances
-    dlmmSolUsdc = await DLMM.create(CONNECTION1, WSOL_USDC_POOL);
-    dlmmUsdcUsdt = await DLMM.create(CONNECTION1, USDC_USDT_POOL);
+    dlmmSolUsdc = await DLMM.create(CONNECTION, WSOL_USDC_POOL);
+    dlmmUsdcUsdt = await DLMM.create(CONNECTION, USDC_USDT_POOL);
   });
 
-  it('Test 1: Two Top-Level Swap Instructions (SOL -> USDC -> USDT)', async () => {
+  it('Test 1: Two Top-Level Swap CPI Instructions (SOL -> USDC -> USDT)', async () => {
     const amountIn = new BN(1 * 10 ** 9); // Swap 1 wSOL
 
     let activeBinArray1 = await getActiveBinArrayHelper(dlmmSolUsdc, METEORA_DLMM_PROGRAM_ID);
@@ -80,46 +75,53 @@ describe('Meteora Two-Hop Swaps', () => {
     // --- QUOTE & PREPARE SWAP 1 (SOL -> USDC) ---
     const binArraysSolUsdc = await dlmmSolUsdc.getBinArrays(); // true = swap X to Y (assuming SOL is X)
     
-    const quoteSolUsdc = dlmmSolUsdc.swapQuote(amountIn, true, new BN(10), binArraysSolUsdc);
+    const activeBinArrayAccount1 = binArraysSolUsdc.find(
+      (binArray) => binArray.publicKey.toBase58() === activeBinArray1.activeBinArrayPubkey.toBase58()
+    )!;
+
+    const quoteSolUsdc = dlmmSolUsdc.swapQuote(amountIn, true, new BN(10), [activeBinArrayAccount1]);
     const solUsdcBinArraysUsed = quoteSolUsdc.binArraysPubkey;
 
     for (const binArray of binArraysSolUsdc) {
-        let totalX = new BN(0);
-        let totalY = new BN(0);
-        
-        // Sum up the reserves of all 70 bins inside this specific Bin Array
-        for (const bin of binArray.account.bins) {
-          totalX = totalX.add(bin.amountX);
-          totalY = totalY.add(bin.amountY);
-        }
+      let totalX = new BN(0);
+      let totalY = new BN(0);
 
-        // Only print arrays that actually contain liquidity to keep your console clean
-        if (totalX.gtn(0) || totalY.gtn(0)) {
-          console.log(`\nBin Array Pubkey: ${binArray.publicKey.toBase58()}`);
-          
-          // Print raw lamport amounts
-          console.log(`Total Token X (SOL) : ${totalX.toString()}`);
-          console.log(`Total Token Y (USDC): ${totalY.toString()}`);
-          
-          // Optional: Convert to human-readable UI amounts (assuming 9 decimals for SOL, 6 for USDC)
-          // console.log(`UI Token X: ${totalX.toNumber() / 1e9}`);
-          // console.log(`UI Token Y: ${totalY.toNumber() / 1e6}`);
-        }
+      // Sum up the reserves of all 70 bins inside this specific Bin Array
+      for (const bin of binArray.account.bins) {
+        totalX = totalX.add(bin.amountX);
+        totalY = totalY.add(bin.amountY);
       }
-    
-    console.log(`==================================\n`);
-    
+
+      // Only print arrays that actually contain liquidity to keep your console clean
+      if (totalX.gtn(0) || totalY.gtn(0)) {
+        console.log(`\nBin Array Pubkey: ${binArray.publicKey.toBase58()}`);
+
+        // Print raw lamport amounts
+        console.log(`Total Token X (SOL) : ${totalX.toString()}`);
+        console.log(`Total Token Y (USDC): ${totalY.toString()}`);
+
+        // Optional: Convert to human-readable UI amounts (assuming 9 decimals for SOL, 6 for USDC)
+        // console.log(`UI Token X: ${totalX.toNumber() / 1e9}`);
+        // console.log(`UI Token Y: ${totalY.toNumber() / 1e6}`);
+      }
+    }
+
     const binArraysUsdcUsdt = await dlmmUsdcUsdt.getBinArrays(); // true = swap X to Y (assuming USDC is X)
-    // --- QUOTE & PREPARE SWAP 2 (USDC -> USDT) ---
-    const quoteUsdcUsdt = dlmmUsdcUsdt.swapQuote(quoteSolUsdc.minOutAmount, true, new BN(100), binArraysUsdcUsdt);
+
+    const activeBinArrayAccount2 = binArraysUsdcUsdt.find(
+      (binArray) => binArray.publicKey.toBase58() === activeBinArray2.activeBinArrayPubkey.toBase58()
+    )!;
+
+    const quoteUsdcUsdt = dlmmUsdcUsdt.swapQuote(quoteSolUsdc.minOutAmount, true, new BN(100), [activeBinArrayAccount2]);
     const usdcUsdtBinArraysUsed = quoteUsdcUsdt.binArraysPubkey;
+
     // Helper to map Codama instruction to Web3.js Instruction and append bin arrays
     const buildProgramSwapIx = (
-      dlmm: DLMM, 
-      inTokenAta: PublicKey, 
-      outTokenAta: PublicKey, 
-      amountIn: BN, 
-      minOut: BN, 
+      dlmm: DLMM,
+      inTokenAta: PublicKey,
+      outTokenAta: PublicKey,
+      amountIn: BN,
+      minOut: BN,
       binArrays: any[]
     ) => {
       const state = dlmm.lbPair;
@@ -127,7 +129,7 @@ describe('Meteora Two-Hop Swaps', () => {
       const codamaIx = getSwapInstruction({
         user: { address: address(user.publicKey.toBase58()), signTransactions: async (txs) => txs }, // 3 = Signer
         lbPair: address(dlmm.pubkey.toBase58()),
-        binrrayBitmapExt: dlmm.binArrayBitmapExtension ? address(dlmm.binArrayBitmapExtension.publicKey.toBase58()) : address(METEORA_DLMM_PROGRAM_ID.toBase58()),
+        binArrayBitmapExt: dlmm.binArrayBitmapExtension ? address(dlmm.binArrayBitmapExtension.publicKey.toBase58()) : address(METEORA_DLMM_PROGRAM_ID.toBase58()),
         reserveX: address(state.reserveX.toBase58()),
         reserveY: address(state.reserveY.toBase58()),
         userTokenIn: address(inTokenAta.toBase58()),
@@ -139,21 +141,17 @@ describe('Meteora Two-Hop Swaps', () => {
         tokenXProgram: address(TOKEN_PROGRAM_ID.toBase58()),
         tokenYProgram: address(TOKEN_PROGRAM_ID.toBase58()),
         memoProgram: address(MEMO_PROGRAM_ID.toBase58()),
-        eventAuthority: address(eventAuthorityPda.toBase58()), 
+        eventAuthority: address(eventAuthorityPda.toBase58()),
         dlmmProgram: address(METEORA_DLMM_PROGRAM_ID.toBase58()),
         amountIn: BigInt(amountIn.toString()),
         minOut: BigInt(minOut.toString()),
-        numBinrrays: 1 //we are only passing the active bin array 
+        numBinArrays: 1 //we are only passing the active bin array 
       });
 
-      // console.log(`bin arrays len: ${binArrays.length}`)
-      // NEW: LOGGING - See exactly what Codama generated before it hits Web3.js
-      console.log(`\n=== Mapping Codama Accounts for Swap ===`);
       codamaIx.accounts.forEach((acc: any, i: number) => {
         console.log(`[Idx ${i}] Role ${acc.role} | Address: ${acc.address}`);
       });
-      console.log(`========================================\n`);
-      
+
       // Convert to web3.js v1 instruction
       const ix = new TransactionInstruction({
         programId: new PublicKey(codamaIx.programAddress),
@@ -168,9 +166,8 @@ describe('Meteora Two-Hop Swaps', () => {
 
       for (let i = 0; i < binArrays.length; i++) {
         const bin = binArrays[i];
-        
-        let binPubkey = bin;
 
+        let binPubkey = bin;
         if (!binPubkey) {
           throw new Error(`Invalid Bin Array format at index ${i}: ${JSON.stringify(bin)}`);
         }
@@ -196,27 +193,21 @@ describe('Meteora Two-Hop Swaps', () => {
     tx.recentBlockhash = (await CONNECTION.getLatestBlockhash()).blockhash;
     tx.feePayer = user.publicKey;
 
-    // Fetch Before Balances
     const preUsdt = await CONNECTION.getTokenAccountBalance(userUsdtAta);
-    
-    // NEW: Pre-Swap Logging
-    console.log(`\n[Test 1] Executing Two-Hop Transaction...`);
+
+    console.log(`\n[Test 1] Executing Transaction...`);
     console.log(`Pre-Swap USDT Balance: ${preUsdt.value.uiAmount}`);
 
-    // Execute
     const sig = await sendAndConfirmTransaction(CONNECTION, tx, [user], { skipPreflight: true });
     console.log(`Test 1 Tx Sig: ${sig}`);
 
-    // Fetch After Balances
     const postUsdt = await CONNECTION.getTokenAccountBalance(userUsdtAta);
     const postUsdc = await CONNECTION.getTokenAccountBalance(userUsdcAta);
 
-    // NEW: Post-Swap Logging
     console.log(`Post-Swap USDT Balance: ${postUsdt.value.uiAmount}`);
     console.log(`Leftover USDC Dust: ${postUsdc.value.uiAmount}`);
-    console.log(`Total USDT Earned: ${Number(postUsdt.value.amount) - Number(preUsdt.value.amount)} lamports`);
+    console.log(`Total USDT Gotten: ${Number(postUsdt.value.amount) - Number(preUsdt.value.amount)} lamports`);
 
-    // Assertions
     assert.isTrue(Number(postUsdt.value.amount) > Number(preUsdt.value.amount), "USDT balance should increase");
   });
 
@@ -225,14 +216,22 @@ describe('Meteora Two-Hop Swaps', () => {
     let activeBinArray1 = await getActiveBinArrayHelper(dlmmSolUsdc, METEORA_DLMM_PROGRAM_ID);
     let activeBinArray2 = await getActiveBinArrayHelper(dlmmUsdcUsdt, METEORA_DLMM_PROGRAM_ID);
     // We are resetting/adding another 1 wSOL for this test via airdrop if needed, but we started with 10.
-    const amountIn = new BN(1 * 10 ** 9); 
-
+    const amountIn = new BN(1 * 10 ** 9);
 
     const binArraysSolUsdc = await dlmmSolUsdc.getBinArrays(); // true = swap X to Y (assuming SOL is X)
-    const quoteSolUsdc = dlmmSolUsdc.swapQuote(amountIn, true, new BN(10), binArraysSolUsdc);
+    const activeBinArrayAccount1 = binArraysSolUsdc.find(
+      (binArray) => binArray.publicKey.toBase58() === activeBinArray1.activeBinArrayPubkey.toBase58()
+    )!;
+    const quoteSolUsdc = dlmmSolUsdc.swapQuote(amountIn, true, new BN(10), [activeBinArrayAccount1]);
+
     
     const binArraysUsdcUsdt = await dlmmUsdcUsdt.getBinArrays(); // true = swap X to Y (assuming USDC is X)
-    const quoteUsdcUsdt = dlmmUsdcUsdt.swapQuote(quoteSolUsdc.minOutAmount, true, new BN(100), binArraysUsdcUsdt);
+        const activeBinArrayAccount2 = binArraysUsdcUsdt.find(
+      (binArray) => binArray.publicKey.toBase58() === activeBinArray2.activeBinArrayPubkey.toBase58()
+    )!;
+
+    const quoteUsdcUsdt = dlmmUsdcUsdt.swapQuote(quoteSolUsdc.minOutAmount, true, new BN(100), [activeBinArrayAccount2]);
+    
     const usdcUsdtBinArraysUsed = quoteUsdcUsdt.binArraysPubkey;
 
     // 1. Build Instruction 0 (Direct DLMM SDK call)
@@ -246,7 +245,7 @@ describe('Meteora Two-Hop Swaps', () => {
       user: user.publicKey,
       binArraysPubkey: [activeBinArray1.activeBinArrayPubkey] //binArraysSolUsdc.map(b => b.publicKey),
     });
-    
+
     // Extract the actual Meteora Swap instruction (filter out compute budget/token ATA setups if any exist in the builder)
     const dlmmDirectIx = dlmmSwapTx.instructions.find(ix => ix.programId.equals(METEORA_DLMM_PROGRAM_ID))!;
 
@@ -270,14 +269,10 @@ describe('Meteora Two-Hop Swaps', () => {
       memoProgram: address(MEMO_PROGRAM_ID.toBase58()),
       eventAuthority: address(eventAuthorityPda.toBase58()),
       dlmmProgram: address(METEORA_DLMM_PROGRAM_ID.toBase58()),
-      amountIn:  BigInt(quoteSolUsdc.minOutAmount.toString()), 
-      minOut: BigInt(quoteUsdcUsdt.minOutAmount.toString()), 
-      numBinrrays: 1  //we are only passing the active bin array 
+      amountIn: BigInt(quoteSolUsdc.minOutAmount.toString()),
+      minOut: BigInt(quoteUsdcUsdt.minOutAmount.toString()),
+      numBinArrays: 1  //we are only passing the active bin array 
     });
-
-    console.log(`this is the minOutAmount solUsdc${quoteSolUsdc.minOutAmount.toString()}`)
-    console.log(`this is the minOutAmount usdcUsdt ${quoteUsdcUsdt.minOutAmount.toString()}`)
-    console.log(`this is the bin array length ${usdcUsdtBinArraysUsed.length}`)
 
     const swap2Ix = new TransactionInstruction({
       programId: new PublicKey(codamaIx2.programAddress),
@@ -289,26 +284,23 @@ describe('Meteora Two-Hop Swaps', () => {
       data: Buffer.from(codamaIx2.data),
     });
 
-    let binArrays =  usdcUsdtBinArraysUsed;
+    let binArrays = usdcUsdtBinArraysUsed;
 
-     if (state.tokenYMint.toString() == USDT_MINT.toString()) { //USDC/USDT
-        swap2Ix.keys.push({ pubkey: activeBinArray2.activeBinArrayPubkey, isSigner: false, isWritable: true }); //push active bin instead of whatever the swapQuote returns 
+    for (let i = 0; i < binArrays.length; i++) {
+      const bin = binArrays[i];
+
+      let binPubkey = bin;
+
+      if (!binPubkey) {
+        throw new Error(`Invalid Bin Array format at index ${i}: ${JSON.stringify(bin)}`);
       }
 
-      for (let i = 0; i < binArrays.length; i++) {
-        const bin = binArrays[i];
-        
-        let binPubkey = bin;
+      // swap2Ix.keys.push({ pubkey: binPubkey, isSigner: false, isWritable: true }); //getting invalidBinArray for some reason
+    }
 
-        if (!binPubkey) {
-          throw new Error(`Invalid Bin Array format at index ${i}: ${JSON.stringify(bin)}`);
-        }
-
-        // swap2Ix.keys.push({ pubkey: binPubkey, isSigner: false, isWritable: true }); //getting invalidBinArray tried again at 7.49pm 
-      }
-
-     
-
+    if (state.tokenYMint.toString() == USDT_MINT.toString()) { //USDC/USDT
+      swap2Ix.keys.push({ pubkey: activeBinArray2.activeBinArrayPubkey, isSigner: false, isWritable: true }); //push active bin instead of whatever the swapQuote returns 
+    }
     // Pack into a single transaction (Instruction 0 = DLMM , Instruction 1 = swap2)
     const tx = new Transaction().add(dlmmDirectIx, swap2Ix);
     tx.recentBlockhash = (await CONNECTION.getLatestBlockhash()).blockhash;
@@ -321,8 +313,8 @@ describe('Meteora Two-Hop Swaps', () => {
     const postUsdt = await CONNECTION.getTokenAccountBalance(userUsdtAta);
     console.log(`USDT Earned : ${Number(postUsdt.value.amount) - Number(preUsdt.value.amount)}`);
 
-    // Assertions
     assert.isTrue(Number(postUsdt.value.amount) > Number(preUsdt.value.amount), "USDT balance should increase via introspection logic");
   });
 });
 
+//the code works well, the tests input are not deterministic 

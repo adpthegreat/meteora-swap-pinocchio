@@ -43,7 +43,7 @@ export type SwapInstruction<
   TProgram extends string = typeof METEORASWAP_PROGRAM_ADDRESS,
   TAccountUser extends string | AccountMeta<string> = string,
   TAccountLbPair extends string | AccountMeta<string> = string,
-  TAccountBinrrayBitmapExt extends string | AccountMeta<string> = string,
+  TAccountBinArrayBitmapExt extends string | AccountMeta<string> = string,
   TAccountReserveX extends string | AccountMeta<string> = string,
   TAccountReserveY extends string | AccountMeta<string> = string,
   TAccountUserTokenIn extends string | AccountMeta<string> = string,
@@ -68,9 +68,9 @@ export type SwapInstruction<
       TAccountLbPair extends string
         ? WritableAccount<TAccountLbPair>
         : TAccountLbPair,
-      TAccountBinrrayBitmapExt extends string
-        ? WritableAccount<TAccountBinrrayBitmapExt>
-        : TAccountBinrrayBitmapExt,
+      TAccountBinArrayBitmapExt extends string
+        ? WritableAccount<TAccountBinArrayBitmapExt>
+        : TAccountBinArrayBitmapExt,
       TAccountReserveX extends string
         ? WritableAccount<TAccountReserveX>
         : TAccountReserveX,
@@ -118,13 +118,13 @@ export type SwapInstructionData = {
   discriminator: number;
   amountIn: bigint;
   minOut: bigint;
-  numBinrrays: number;
+  numBinArrays: number;
 };
 
 export type SwapInstructionDataArgs = {
   amountIn: number | bigint;
   minOut: number | bigint;
-  numBinrrays: number;
+  numBinArrays: number;
 };
 
 export function getSwapInstructionDataEncoder(): FixedSizeEncoder<SwapInstructionDataArgs> {
@@ -133,7 +133,7 @@ export function getSwapInstructionDataEncoder(): FixedSizeEncoder<SwapInstructio
       ["discriminator", getU8Encoder()],
       ["amountIn", getU64Encoder()],
       ["minOut", getU64Encoder()],
-      ["numBinrrays", getU8Encoder()],
+      ["numBinArrays", getU8Encoder()],
     ]),
     (value) => ({ ...value, discriminator: SWAP_DISCRIMINATOR }),
   );
@@ -144,7 +144,7 @@ export function getSwapInstructionDataDecoder(): FixedSizeDecoder<SwapInstructio
     ["discriminator", getU8Decoder()],
     ["amountIn", getU64Decoder()],
     ["minOut", getU64Decoder()],
-    ["numBinrrays", getU8Decoder()],
+    ["numBinArrays", getU8Decoder()],
   ]);
 }
 
@@ -161,7 +161,7 @@ export function getSwapInstructionDataCodec(): FixedSizeCodec<
 export type SwapInput<
   TAccountUser extends string = string,
   TAccountLbPair extends string = string,
-  TAccountBinrrayBitmapExt extends string = string,
+  TAccountBinArrayBitmapExt extends string = string,
   TAccountReserveX extends string = string,
   TAccountReserveY extends string = string,
   TAccountUserTokenIn extends string = string,
@@ -181,7 +181,7 @@ export type SwapInput<
   /** DLMM lb_pair for swap */
   lbPair: Address<TAccountLbPair>;
   /** Bin array bitmap extension for swap (pass DLMM program ID if unused) */
-  binrrayBitmapExt: Address<TAccountBinrrayBitmapExt>;
+  binArrayBitmapExt: Address<TAccountBinArrayBitmapExt>;
   /** Pool token X reserve for swap */
   reserveX: Address<TAccountReserveX>;
   /** Pool token Y reserve for swap */
@@ -210,13 +210,13 @@ export type SwapInput<
   dlmmProgram: Address<TAccountDlmmProgram>;
   amountIn: SwapInstructionDataArgs["amountIn"];
   minOut: SwapInstructionDataArgs["minOut"];
-  numBinrrays: SwapInstructionDataArgs["numBinrrays"];
+  numBinArrays: SwapInstructionDataArgs["numBinArrays"];
 };
 
 export function getSwapInstruction<
   TAccountUser extends string,
   TAccountLbPair extends string,
-  TAccountBinrrayBitmapExt extends string,
+  TAccountBinArrayBitmapExt extends string,
   TAccountReserveX extends string,
   TAccountReserveY extends string,
   TAccountUserTokenIn extends string,
@@ -235,7 +235,7 @@ export function getSwapInstruction<
   input: SwapInput<
     TAccountUser,
     TAccountLbPair,
-    TAccountBinrrayBitmapExt,
+    TAccountBinArrayBitmapExt,
     TAccountReserveX,
     TAccountReserveY,
     TAccountUserTokenIn,
@@ -255,7 +255,7 @@ export function getSwapInstruction<
   TProgramAddress,
   TAccountUser,
   TAccountLbPair,
-  TAccountBinrrayBitmapExt,
+  TAccountBinArrayBitmapExt,
   TAccountReserveX,
   TAccountReserveY,
   TAccountUserTokenIn,
@@ -277,8 +277,8 @@ export function getSwapInstruction<
   const originalAccounts = {
     user: { value: input.user ?? null, isWritable: false },
     lbPair: { value: input.lbPair ?? null, isWritable: true },
-    binrrayBitmapExt: {
-      value: input.binrrayBitmapExt ?? null,
+    binArrayBitmapExt: {
+      value: input.binArrayBitmapExt ?? null,
       isWritable: true,
     },
     reserveX: { value: input.reserveX ?? null, isWritable: true },
@@ -308,7 +308,7 @@ export function getSwapInstruction<
     accounts: [
       getAccountMeta(accounts.user),
       getAccountMeta(accounts.lbPair),
-      getAccountMeta(accounts.binrrayBitmapExt),
+      getAccountMeta(accounts.binArrayBitmapExt),
       getAccountMeta(accounts.reserveX),
       getAccountMeta(accounts.reserveY),
       getAccountMeta(accounts.userTokenIn),
@@ -331,7 +331,7 @@ export function getSwapInstruction<
     TProgramAddress,
     TAccountUser,
     TAccountLbPair,
-    TAccountBinrrayBitmapExt,
+    TAccountBinArrayBitmapExt,
     TAccountReserveX,
     TAccountReserveY,
     TAccountUserTokenIn,
@@ -359,7 +359,7 @@ export type ParsedSwapInstruction<
     /** DLMM lb_pair for swap */
     lbPair: TAccountMetas[1];
     /** Bin array bitmap extension for swap (pass DLMM program ID if unused) */
-    binrrayBitmapExt: TAccountMetas[2];
+    binArrayBitmapExt: TAccountMetas[2];
     /** Pool token X reserve for swap */
     reserveX: TAccountMetas[3];
     /** Pool token Y reserve for swap */
@@ -413,7 +413,7 @@ export function parseSwapInstruction<
     accounts: {
       user: getNextAccount(),
       lbPair: getNextAccount(),
-      binrrayBitmapExt: getNextAccount(),
+      binArrayBitmapExt: getNextAccount(),
       reserveX: getNextAccount(),
       reserveY: getNextAccount(),
       userTokenIn: getNextAccount(),

@@ -1,6 +1,6 @@
 use pinocchio::{account_info::AccountInfo, program_error::ProgramError};
 
-// Processor for the `SwapA` instruction (discriminator 0x00).
+// Processor for the `SwapA` instruction (discriminator 0).
 //
 // ### Accounts:
 //   0.  `[SIGNER]`  user

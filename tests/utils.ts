@@ -81,7 +81,6 @@ export async function getActiveBinArrayHelper(dlmm: DLMM, programId: PublicKey) 
     programId
   );
 
-  console.log(`\n=== 📊 POOL LIQUIDITY ANALYSIS ===`);
   console.log(`Pool Address: ${dlmm.pubkey.toBase58()}`);
   console.log(`Current Active Bin ID: ${activeBin.binId} (Price: ${activeBin.price})`);
   console.log(`Active Bin Array Index: ${activeBinArrayIndex.toString()}`);

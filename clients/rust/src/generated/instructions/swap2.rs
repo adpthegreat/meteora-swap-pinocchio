@@ -156,7 +156,7 @@ impl Default for Swap2InstructionData {
 pub struct Swap2InstructionArgs {
     pub amount_in: u64,
     pub min_out: u64,
-    pub num_binrrays: u8,
+    pub num_bin_arrays: u8,
 }
 
 impl Swap2InstructionArgs {
@@ -207,7 +207,7 @@ pub struct Swap2Builder {
     dlmm_program: Option<solana_pubkey::Pubkey>,
     amount_in: Option<u64>,
     min_out: Option<u64>,
-    num_binrrays: Option<u8>,
+    num_bin_arrays: Option<u8>,
     __remaining_accounts: Vec<solana_instruction::AccountMeta>,
 }
 
@@ -332,8 +332,8 @@ impl Swap2Builder {
         self
     }
     #[inline(always)]
-    pub fn num_binrrays(&mut self, num_binrrays: u8) -> &mut Self {
-        self.num_binrrays = Some(num_binrrays);
+    pub fn num_bin_arrays(&mut self, num_bin_arrays: u8) -> &mut Self {
+        self.num_bin_arrays = Some(num_bin_arrays);
         self
     }
     /// Add an additional account to the instruction.
@@ -379,7 +379,10 @@ impl Swap2Builder {
         let args = Swap2InstructionArgs {
             amount_in: self.amount_in.clone().expect("amount_in is not set"),
             min_out: self.min_out.clone().expect("min_out is not set"),
-            num_binrrays: self.num_binrrays.clone().expect("num_binrrays is not set"),
+            num_bin_arrays: self
+                .num_bin_arrays
+                .clone()
+                .expect("num_bin_arrays is not set"),
         };
 
         accounts.instruction_with_remaining_accounts(args, &self.__remaining_accounts)
@@ -682,7 +685,7 @@ impl<'a, 'b> Swap2CpiBuilder<'a, 'b> {
             dlmm_program: None,
             amount_in: None,
             min_out: None,
-            num_binrrays: None,
+            num_bin_arrays: None,
             __remaining_accounts: Vec::new(),
         });
         Self { instruction }
@@ -836,8 +839,8 @@ impl<'a, 'b> Swap2CpiBuilder<'a, 'b> {
         self
     }
     #[inline(always)]
-    pub fn num_binrrays(&mut self, num_binrrays: u8) -> &mut Self {
-        self.instruction.num_binrrays = Some(num_binrrays);
+    pub fn num_bin_arrays(&mut self, num_bin_arrays: u8) -> &mut Self {
+        self.instruction.num_bin_arrays = Some(num_bin_arrays);
         self
     }
     /// Add an additional account to the instruction.
@@ -885,11 +888,11 @@ impl<'a, 'b> Swap2CpiBuilder<'a, 'b> {
                 .min_out
                 .clone()
                 .expect("min_out is not set"),
-            num_binrrays: self
+            num_bin_arrays: self
                 .instruction
-                .num_binrrays
+                .num_bin_arrays
                 .clone()
-                .expect("num_binrrays is not set"),
+                .expect("num_bin_arrays is not set"),
         };
         let instruction = Swap2Cpi {
             __program: self.instruction.__program,
@@ -994,7 +997,7 @@ struct Swap2CpiBuilderInstruction<'a, 'b> {
     dlmm_program: Option<&'b solana_account_info::AccountInfo<'a>>,
     amount_in: Option<u64>,
     min_out: Option<u64>,
-    num_binrrays: Option<u8>,
+    num_bin_arrays: Option<u8>,
     /// Additional instruction accounts `(AccountInfo, is_writable, is_signer)`.
     __remaining_accounts: Vec<(&'b solana_account_info::AccountInfo<'a>, bool, bool)>,
 }

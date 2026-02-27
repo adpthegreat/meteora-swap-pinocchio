@@ -8,7 +8,6 @@ use crate::{write_bytes, UNINIT_BYTE};
 
 const BASE_DATA_LEN: usize = 28; // discriminator + amounts + empty remaining_accounts_info
 
-
 #[derive(Clone, Debug, PartialEq)]
 pub enum AccountsType {
     TransferHookX,

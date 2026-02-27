@@ -4,19 +4,38 @@
   "license": "MIT",
   "scripts": {
     "generate:clients": "zx ./scripts/generate-clients.mjs",
-    "generate:idl": "shank idl -r program -o idl"
+    "generate:idl": "shank idl -r program -o idl",
+    "test": "mocha --require tsx tests/**/*.test.ts --timeout 120000",
+    "test:integration": "ts-mocha -p tsconfig.json tests/test.ts --timeout 120000",
+    "test:1": "mocha --require tsx tests/test.ts -g 'Test 1' --timeout 120000",
+    "test:2": "mocha --require tsx tests/test.ts -g 'Test 2' --timeout 120000"
   },
   "devDependencies": {
+    "@codama/nodes-from-anchor": "^1.1.6",
     "@codama/renderers-js": "^1.0.0",
     "@codama/renderers-rust": "^1.0.0",
-    "@codama/nodes-from-anchor": "^1.1.6",
-    "codama": "^1.2.6",
-    "zx": "^8.3.2",
     "@solana/spl-token": "0.4.9",
-    "@solana/web3.js": "^1.68.0"
+    "@solana/web3.js": "^1.98.4",
+    "@types/bn.js": "^5.2.0",
+    "@types/chai": "^5.2.3",
+    "@types/mocha": "^10.0.10",
+    "codama": "^1.2.6",
+    "mocha": "^11.7.5",
+    "ts-mocha": "^11.1.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "zx": "^8.3.2"
   },
   "engines": {
     "node": ">=v20.0.0"
   },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e",
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.32.1",
+    "@meteora-ag/dlmm-sdk-public": "^1.0.1",
+    "@solana/kit": "^6.1.0",
+    "bn": "^1.0.5",
+    "chai": "^6.2.2"
+  }
 }

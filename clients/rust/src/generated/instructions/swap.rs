@@ -18,7 +18,7 @@ pub struct Swap {
     /// DLMM lb_pair for swap
     pub lb_pair: solana_pubkey::Pubkey,
     /// Bin array bitmap extension for swap (pass DLMM program ID if unused)
-    pub binrray_bitmap_ext: solana_pubkey::Pubkey,
+    pub bin_array_bitmap_ext: solana_pubkey::Pubkey,
     /// Pool token X reserve for swap
     pub reserve_x: solana_pubkey::Pubkey,
     /// Pool token Y reserve for swap
@@ -64,7 +64,7 @@ impl Swap {
         ));
         accounts.push(solana_instruction::AccountMeta::new(self.lb_pair, false));
         accounts.push(solana_instruction::AccountMeta::new(
-            self.binrray_bitmap_ext,
+            self.bin_array_bitmap_ext,
             false,
         ));
         accounts.push(solana_instruction::AccountMeta::new(self.reserve_x, false));
@@ -150,7 +150,7 @@ impl Default for SwapInstructionData {
 pub struct SwapInstructionArgs {
     pub amount_in: u64,
     pub min_out: u64,
-    pub num_binrrays: u8,
+    pub num_bin_arrays: u8,
 }
 
 impl SwapInstructionArgs {
@@ -165,7 +165,7 @@ impl SwapInstructionArgs {
 ///
 ///   0. `[signer]` user
 ///   1. `[writable]` lb_pair
-///   2. `[writable]` binrray_bitmap_ext
+///   2. `[writable]` bin_array_bitmap_ext
 ///   3. `[writable]` reserve_x
 ///   4. `[writable]` reserve_y
 ///   5. `[writable]` user_token_in
@@ -183,7 +183,7 @@ impl SwapInstructionArgs {
 pub struct SwapBuilder {
     user: Option<solana_pubkey::Pubkey>,
     lb_pair: Option<solana_pubkey::Pubkey>,
-    binrray_bitmap_ext: Option<solana_pubkey::Pubkey>,
+    bin_array_bitmap_ext: Option<solana_pubkey::Pubkey>,
     reserve_x: Option<solana_pubkey::Pubkey>,
     reserve_y: Option<solana_pubkey::Pubkey>,
     user_token_in: Option<solana_pubkey::Pubkey>,
@@ -199,7 +199,7 @@ pub struct SwapBuilder {
     dlmm_program: Option<solana_pubkey::Pubkey>,
     amount_in: Option<u64>,
     min_out: Option<u64>,
-    num_binrrays: Option<u8>,
+    num_bin_arrays: Option<u8>,
     __remaining_accounts: Vec<solana_instruction::AccountMeta>,
 }
 
@@ -221,8 +221,11 @@ impl SwapBuilder {
     }
     /// Bin array bitmap extension for swap (pass DLMM program ID if unused)
     #[inline(always)]
-    pub fn binrray_bitmap_ext(&mut self, binrray_bitmap_ext: solana_pubkey::Pubkey) -> &mut Self {
-        self.binrray_bitmap_ext = Some(binrray_bitmap_ext);
+    pub fn bin_array_bitmap_ext(
+        &mut self,
+        bin_array_bitmap_ext: solana_pubkey::Pubkey,
+    ) -> &mut Self {
+        self.bin_array_bitmap_ext = Some(bin_array_bitmap_ext);
         self
     }
     /// Pool token X reserve for swap
@@ -314,8 +317,8 @@ impl SwapBuilder {
         self
     }
     #[inline(always)]
-    pub fn num_binrrays(&mut self, num_binrrays: u8) -> &mut Self {
-        self.num_binrrays = Some(num_binrrays);
+    pub fn num_bin_arrays(&mut self, num_bin_arrays: u8) -> &mut Self {
+        self.num_bin_arrays = Some(num_bin_arrays);
         self
     }
     /// Add an additional account to the instruction.
@@ -338,9 +341,9 @@ impl SwapBuilder {
         let accounts = Swap {
             user: self.user.expect("user is not set"),
             lb_pair: self.lb_pair.expect("lb_pair is not set"),
-            binrray_bitmap_ext: self
-                .binrray_bitmap_ext
-                .expect("binrray_bitmap_ext is not set"),
+            bin_array_bitmap_ext: self
+                .bin_array_bitmap_ext
+                .expect("bin_array_bitmap_ext is not set"),
             reserve_x: self.reserve_x.expect("reserve_x is not set"),
             reserve_y: self.reserve_y.expect("reserve_y is not set"),
             user_token_in: self.user_token_in.expect("user_token_in is not set"),
@@ -358,7 +361,10 @@ impl SwapBuilder {
         let args = SwapInstructionArgs {
             amount_in: self.amount_in.clone().expect("amount_in is not set"),
             min_out: self.min_out.clone().expect("min_out is not set"),
-            num_binrrays: self.num_binrrays.clone().expect("num_binrrays is not set"),
+            num_bin_arrays: self
+                .num_bin_arrays
+                .clone()
+                .expect("num_bin_arrays is not set"),
         };
 
         accounts.instruction_with_remaining_accounts(args, &self.__remaining_accounts)
@@ -372,7 +378,7 @@ pub struct SwapCpiAccounts<'a, 'b> {
     /// DLMM lb_pair for swap
     pub lb_pair: &'b solana_account_info::AccountInfo<'a>,
     /// Bin array bitmap extension for swap (pass DLMM program ID if unused)
-    pub binrray_bitmap_ext: &'b solana_account_info::AccountInfo<'a>,
+    pub bin_array_bitmap_ext: &'b solana_account_info::AccountInfo<'a>,
     /// Pool token X reserve for swap
     pub reserve_x: &'b solana_account_info::AccountInfo<'a>,
     /// Pool token Y reserve for swap
@@ -410,7 +416,7 @@ pub struct SwapCpi<'a, 'b> {
     /// DLMM lb_pair for swap
     pub lb_pair: &'b solana_account_info::AccountInfo<'a>,
     /// Bin array bitmap extension for swap (pass DLMM program ID if unused)
-    pub binrray_bitmap_ext: &'b solana_account_info::AccountInfo<'a>,
+    pub bin_array_bitmap_ext: &'b solana_account_info::AccountInfo<'a>,
     /// Pool token X reserve for swap
     pub reserve_x: &'b solana_account_info::AccountInfo<'a>,
     /// Pool token Y reserve for swap
@@ -451,7 +457,7 @@ impl<'a, 'b> SwapCpi<'a, 'b> {
             __program: program,
             user: accounts.user,
             lb_pair: accounts.lb_pair,
-            binrray_bitmap_ext: accounts.binrray_bitmap_ext,
+            bin_array_bitmap_ext: accounts.bin_array_bitmap_ext,
             reserve_x: accounts.reserve_x,
             reserve_y: accounts.reserve_y,
             user_token_in: accounts.user_token_in,
@@ -501,7 +507,7 @@ impl<'a, 'b> SwapCpi<'a, 'b> {
             false,
         ));
         accounts.push(solana_instruction::AccountMeta::new(
-            *self.binrray_bitmap_ext.key,
+            *self.bin_array_bitmap_ext.key,
             false,
         ));
         accounts.push(solana_instruction::AccountMeta::new(
@@ -576,7 +582,7 @@ impl<'a, 'b> SwapCpi<'a, 'b> {
         account_infos.push(self.__program.clone());
         account_infos.push(self.user.clone());
         account_infos.push(self.lb_pair.clone());
-        account_infos.push(self.binrray_bitmap_ext.clone());
+        account_infos.push(self.bin_array_bitmap_ext.clone());
         account_infos.push(self.reserve_x.clone());
         account_infos.push(self.reserve_y.clone());
         account_infos.push(self.user_token_in.clone());
@@ -608,7 +614,7 @@ impl<'a, 'b> SwapCpi<'a, 'b> {
 ///
 ///   0. `[signer]` user
 ///   1. `[writable]` lb_pair
-///   2. `[writable]` binrray_bitmap_ext
+///   2. `[writable]` bin_array_bitmap_ext
 ///   3. `[writable]` reserve_x
 ///   4. `[writable]` reserve_y
 ///   5. `[writable]` user_token_in
@@ -633,7 +639,7 @@ impl<'a, 'b> SwapCpiBuilder<'a, 'b> {
             __program: program,
             user: None,
             lb_pair: None,
-            binrray_bitmap_ext: None,
+            bin_array_bitmap_ext: None,
             reserve_x: None,
             reserve_y: None,
             user_token_in: None,
@@ -649,7 +655,7 @@ impl<'a, 'b> SwapCpiBuilder<'a, 'b> {
             dlmm_program: None,
             amount_in: None,
             min_out: None,
-            num_binrrays: None,
+            num_bin_arrays: None,
             __remaining_accounts: Vec::new(),
         });
         Self { instruction }
@@ -668,11 +674,11 @@ impl<'a, 'b> SwapCpiBuilder<'a, 'b> {
     }
     /// Bin array bitmap extension for swap (pass DLMM program ID if unused)
     #[inline(always)]
-    pub fn binrray_bitmap_ext(
+    pub fn bin_array_bitmap_ext(
         &mut self,
-        binrray_bitmap_ext: &'b solana_account_info::AccountInfo<'a>,
+        bin_array_bitmap_ext: &'b solana_account_info::AccountInfo<'a>,
     ) -> &mut Self {
-        self.instruction.binrray_bitmap_ext = Some(binrray_bitmap_ext);
+        self.instruction.bin_array_bitmap_ext = Some(bin_array_bitmap_ext);
         self
     }
     /// Pool token X reserve for swap
@@ -794,8 +800,8 @@ impl<'a, 'b> SwapCpiBuilder<'a, 'b> {
         self
     }
     #[inline(always)]
-    pub fn num_binrrays(&mut self, num_binrrays: u8) -> &mut Self {
-        self.instruction.num_binrrays = Some(num_binrrays);
+    pub fn num_bin_arrays(&mut self, num_bin_arrays: u8) -> &mut Self {
+        self.instruction.num_bin_arrays = Some(num_bin_arrays);
         self
     }
     /// Add an additional account to the instruction.
@@ -843,11 +849,11 @@ impl<'a, 'b> SwapCpiBuilder<'a, 'b> {
                 .min_out
                 .clone()
                 .expect("min_out is not set"),
-            num_binrrays: self
+            num_bin_arrays: self
                 .instruction
-                .num_binrrays
+                .num_bin_arrays
                 .clone()
-                .expect("num_binrrays is not set"),
+                .expect("num_bin_arrays is not set"),
         };
         let instruction = SwapCpi {
             __program: self.instruction.__program,
@@ -856,10 +862,10 @@ impl<'a, 'b> SwapCpiBuilder<'a, 'b> {
 
             lb_pair: self.instruction.lb_pair.expect("lb_pair is not set"),
 
-            binrray_bitmap_ext: self
+            bin_array_bitmap_ext: self
                 .instruction
-                .binrray_bitmap_ext
-                .expect("binrray_bitmap_ext is not set"),
+                .bin_array_bitmap_ext
+                .expect("bin_array_bitmap_ext is not set"),
 
             reserve_x: self.instruction.reserve_x.expect("reserve_x is not set"),
 
@@ -930,7 +936,7 @@ struct SwapCpiBuilderInstruction<'a, 'b> {
     __program: &'b solana_account_info::AccountInfo<'a>,
     user: Option<&'b solana_account_info::AccountInfo<'a>>,
     lb_pair: Option<&'b solana_account_info::AccountInfo<'a>>,
-    binrray_bitmap_ext: Option<&'b solana_account_info::AccountInfo<'a>>,
+    bin_array_bitmap_ext: Option<&'b solana_account_info::AccountInfo<'a>>,
     reserve_x: Option<&'b solana_account_info::AccountInfo<'a>>,
     reserve_y: Option<&'b solana_account_info::AccountInfo<'a>>,
     user_token_in: Option<&'b solana_account_info::AccountInfo<'a>>,
@@ -946,7 +952,7 @@ struct SwapCpiBuilderInstruction<'a, 'b> {
     dlmm_program: Option<&'b solana_account_info::AccountInfo<'a>>,
     amount_in: Option<u64>,
     min_out: Option<u64>,
-    num_binrrays: Option<u8>,
+    num_bin_arrays: Option<u8>,
     /// Additional instruction accounts `(AccountInfo, is_writable, is_signer)`.
     __remaining_accounts: Vec<(&'b solana_account_info::AccountInfo<'a>, bool, bool)>,
 }

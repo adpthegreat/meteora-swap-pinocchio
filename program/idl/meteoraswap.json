@@ -144,7 +144,7 @@
           "type": "u64"
         },
         {
-          "name": "numBinrrays",
+          "name": "numBinArrays",
           "type": "u8"
         }
       ],
@@ -303,7 +303,7 @@
           "type": "u64"
         },
         {
-          "name": "numBinrrays",
+          "name": "numBinArrays",
           "type": "u8"
         }
       ],

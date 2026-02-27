@@ -13,7 +13,7 @@ use crate::{
     }
 };
 
-// Processor for the ` Swap2` instruction (discriminator 0x01).
+// Processor for the ` Swap2` instruction (discriminator 1).
 //
 // ### Accounts:
 //   0.  `[SIGNER]`  user
@@ -56,23 +56,6 @@ impl<'a> TryFrom<(&'a [u8], &'a [AccountInfo])> for Swap2<'a> {
     }
 }
 
-//Get the actual token amount received (not just quoted amount)
-//Use that amount for the second swap
-//basically the whole prupose of us introspecting is to get the actuall amount of USDC we received and use it for the swap 
-//so we introspect the first ix, get the transfer ix to us, then use that as the input of the next swap
-
-//a transaction that introspects the previous transaction to get the accurate balance of what the user received and not 
-// the secondary quoted balance and uses that for the next swap
-
-//we depend on diffing the balance with a quote and the actual balance
-
-//create vault and then close after each txn - can we ddosed/griefing , unnecesary CUs 
-
-// Verify that instruction #1 was indeed a Meteora swap
-//we can't introspect internal instructions 
-// Parse the token transfer that resulted from it
-// Get the actual USDC amount received (not just quoted amount)
-// Use that amount for the second swap
 
 impl Swap2<'_> {
     fn process(&self) -> ProgramResult {

@@ -5,14 +5,6 @@ use shank::ShankInstruction;
 
 //DLMM swap 
 
-//two top level cpi swaps of the program swap1 instruction (instead of one instruction that takes all the accounts for two swaps at once) 
-
-//Transaction - swap1 ix + swap1 ix 
-
-//introspect swap -> 1 swap client side + 2nd cpi swap2 introspecting first client side swap 
-
-//Transaction - top level dlmm client side swap ix + swap2 ix
-
 /// Instructions for the MeteoraSwap program.
 ///
 /// This enum is compiled only with `--features idl` and is never included
@@ -44,7 +36,7 @@ pub enum MeteoraSwapInstruction {
         /// Minimum output token to accept from pool
         min_out: u64,
         /// Number of bin-array remaining accounts 
-        num_binrrays: u8,
+        num_bin_arrays: u8,
     },
 
     /// Verify that a top-level DLMM `swap2` instruction exists at
@@ -73,6 +65,6 @@ pub enum MeteoraSwapInstruction {
         /// Minimum output token to accept from pool B.
         min_out: u64,
         /// Number of bin-array remaining accounts for swap B.
-        num_binrrays: u8,
+        num_bin_arrays: u8,
     },
 }

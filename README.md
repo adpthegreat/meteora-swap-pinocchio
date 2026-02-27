@@ -1,22 +1,22 @@
 # Meteora Swaps 
 
-Inspired by this reply to a tweet https://x.com/deanmlittle/status/2025787879461634315?s=20
+Demonstrates a solana program to execute two swap in sequence atomically in a transaction using pinocchio, we use meteoras DLMM program as the swap venue, it was inspired by this reply to the tweet https://x.com/deanmlittle/status/2025787879461634315?s=20 to actually compare the normal double CPI method with a method where we introspect the former top level swap instruction
 
 
 ```
 Pattern A: Both Swaps
 [Router]
   ├─> Swap A (CPI)
-  │     └─> SwapProgram x2
+  │     └─> SwapProgram
   └─> Swap B (CPI)
-        └─> SwapProgram x2
+        └─> SwapProgram
 
 Pattern B: Introspect + 1 CPI
 [Swap A top-level]   
   └─> SwapProgram x2
 [Router]
   └─> Swap B (CPI)
-        └─> SwapProgram x2
+        └─> SwapProgram
 ```
 
 ## Build
@@ -62,15 +62,18 @@ yarn generate:clients
 ```
 
 ## Running Tests
+`surfpool start` in this directory to start the local surfpool validator, to install surfpool visit 
+[surfpool](surfpool.run)
 
+Then to run the tests we run
+
+```
 yarn run test:1
 yarn run test:2
+```
 
-
-## Take Note
-- ansi_term , cipher - duplicates in Cargo.lock from the github.com/exo-tech-xyz/pinocchio-project template that i used, will make PR
-
-- then fixed base64ct `cargo build-sbf` build error by downgrading it https://solana.stackexchange.com/questions/23578/how-to-build-with-solana-program-3-0-0-cargo-build-sbf-3-0-6-fails-with-edition
+## Note
+- Fixed base64ct `cargo build-sbf` build error by downgrading it https://solana.stackexchange.com/questions/23578/how-to-build-with-solana-program-3-0-0-cargo-build-sbf-3-0-6-fails-with-edition
 
 
 ## Quick script to convert base58 address to hex

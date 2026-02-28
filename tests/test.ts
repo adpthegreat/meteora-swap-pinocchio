@@ -54,26 +54,42 @@ describe('Meteora Two Swaps', () => {
     userUsdcAta = getAssociatedTokenAddressSync(USDC_MINT, user.publicKey);
     userUsdtAta = getAssociatedTokenAddressSync(USDT_MINT, user.publicKey);
 
-    await surfnetAirdrop(CONNECTION, user.publicKey.toBase58(), 10 * 10 ** 9);
+    const setupStart = performance.now();
 
-    await surfnetTokenAirdrop(CONNECTION, user.publicKey.toBase58(), WSOL_MINT.toBase58(), 10 * 10 ** 9);
+    await Promise.all([
+      surfnetAirdrop(CONNECTION, user.publicKey.toBase58(), 10 * 10 ** 9),
+      surfnetTokenAirdrop(CONNECTION, user.publicKey.toBase58(), WSOL_MINT.toBase58(), 10 * 10 ** 9),
+      surfnetTokenAirdrop(CONNECTION, user.publicKey.toBase58(), USDC_MINT.toBase58(), 0),
+      surfnetTokenAirdrop(CONNECTION, user.publicKey.toBase58(), USDT_MINT.toBase58(), 0)
+    ]);
 
+    const [dlmm1, dlmm2] = await Promise.all([
+      DLMM.create(CONNECTION, WSOL_USDC_POOL),
+      DLMM.create(CONNECTION, USDC_USDT_POOL)
+    ]);
+    
+    dlmmSolUsdc = dlmm1;
+    dlmmUsdcUsdt = dlmm2;
 
-    await surfnetTokenAirdrop(CONNECTION, user.publicKey.toBase58(), USDC_MINT.toBase58(), 0);
-    await surfnetTokenAirdrop(CONNECTION, user.publicKey.toBase58(), USDT_MINT.toBase58(), 0);
-
-    dlmmSolUsdc = await DLMM.create(CONNECTION, WSOL_USDC_POOL);
-    dlmmUsdcUsdt = await DLMM.create(CONNECTION, USDC_USDT_POOL);
+    console.log(`✅ Setup finished in ${((performance.now() - setupStart) / 1000).toFixed(2)}s`);
   });
 
   it('Test 1: Two Top-Level Swap CPI Instructions (SOL -> USDC -> USDT)', async () => {
     const amountIn = new BN(1 * 10 ** 9); // Swap 1 wSOL
 
-    let activeBinArray1 = await getActiveBinArrayHelper(dlmmSolUsdc, METEORA_DLMM_PROGRAM_ID);
-    let activeBinArray2 = await getActiveBinArrayHelper(dlmmUsdcUsdt, METEORA_DLMM_PROGRAM_ID);
-
-    // --- QUOTE & PREPARE SWAP 1 (SOL -> USDC) ---
-    const binArraysSolUsdc = await dlmmSolUsdc.getBinArrays(); // true = swap X to Y (assuming SOL is X)
+    const [
+      activeBinArray1,
+      activeBinArray2,
+      binArraysSolUsdc,
+      binArraysUsdcUsdt,
+      preUsdt
+    ] = await Promise.all([
+      getActiveBinArrayHelper(dlmmSolUsdc, METEORA_DLMM_PROGRAM_ID),
+      getActiveBinArrayHelper(dlmmUsdcUsdt, METEORA_DLMM_PROGRAM_ID),
+      dlmmSolUsdc.getBinArrays(),
+      dlmmUsdcUsdt.getBinArrays(),
+      CONNECTION.getTokenAccountBalance(userUsdtAta) // Fetch pre-balance upfront
+    ]);
     
     const activeBinArrayAccount1 = binArraysSolUsdc.find(
       (binArray) => binArray.publicKey.toBase58() === activeBinArray1.activeBinArrayPubkey.toBase58()
@@ -81,32 +97,6 @@ describe('Meteora Two Swaps', () => {
 
     const quoteSolUsdc = dlmmSolUsdc.swapQuote(amountIn, true, new BN(10), [activeBinArrayAccount1]);
     const solUsdcBinArraysUsed = quoteSolUsdc.binArraysPubkey;
-
-    for (const binArray of binArraysSolUsdc) {
-      let totalX = new BN(0);
-      let totalY = new BN(0);
-
-      // Sum up the reserves of all 70 bins inside this specific Bin Array
-      for (const bin of binArray.account.bins) {
-        totalX = totalX.add(bin.amountX);
-        totalY = totalY.add(bin.amountY);
-      }
-
-      // Only print arrays that actually contain liquidity to keep your console clean
-      if (totalX.gtn(0) || totalY.gtn(0)) {
-        console.log(`\nBin Array Pubkey: ${binArray.publicKey.toBase58()}`);
-
-        // Print raw lamport amounts
-        console.log(`Total Token X (SOL) : ${totalX.toString()}`);
-        console.log(`Total Token Y (USDC): ${totalY.toString()}`);
-
-        // Optional: Convert to human-readable UI amounts (assuming 9 decimals for SOL, 6 for USDC)
-        // console.log(`UI Token X: ${totalX.toNumber() / 1e9}`);
-        // console.log(`UI Token Y: ${totalY.toNumber() / 1e6}`);
-      }
-    }
-
-    const binArraysUsdcUsdt = await dlmmUsdcUsdt.getBinArrays(); // true = swap X to Y (assuming USDC is X)
 
     const activeBinArrayAccount2 = binArraysUsdcUsdt.find(
       (binArray) => binArray.publicKey.toBase58() === activeBinArray2.activeBinArrayPubkey.toBase58()
@@ -172,7 +162,7 @@ describe('Meteora Two Swaps', () => {
           throw new Error(`Invalid Bin Array format at index ${i}: ${JSON.stringify(bin)}`);
         }
 
-        // ix.keys.push({ pubkey: binPubkey, isSigner: false, isWritable: true }); //getting invalidBinArray so i just use the active bin
+        // ix.keys.push({ pubkey: binPubkey, isSigner: false, isWritable: true }); //getting invalidBinArray so i use the active bin instead
       }
 
       if (state.tokenXMint.toString() == WSOL_MINT.toString()) { //SOL/USDC
@@ -193,8 +183,6 @@ describe('Meteora Two Swaps', () => {
     tx.recentBlockhash = (await CONNECTION.getLatestBlockhash()).blockhash;
     tx.feePayer = user.publicKey;
 
-    const preUsdt = await CONNECTION.getTokenAccountBalance(userUsdtAta);
-
     console.log(`\n[Test 1] Executing Transaction...`);
     console.log(`Pre-Swap USDT Balance: ${preUsdt.value.uiAmount}`);
 
@@ -213,20 +201,30 @@ describe('Meteora Two Swaps', () => {
 
 
   it('Test 2: Instruction Introspection Pattern', async () => {
-    let activeBinArray1 = await getActiveBinArrayHelper(dlmmSolUsdc, METEORA_DLMM_PROGRAM_ID);
-    let activeBinArray2 = await getActiveBinArrayHelper(dlmmUsdcUsdt, METEORA_DLMM_PROGRAM_ID);
+
+     const [
+      activeBinArray1,
+      activeBinArray2,
+      binArraysSolUsdc,
+      binArraysUsdcUsdt,
+      preUsdt
+    ] = await Promise.all([
+      getActiveBinArrayHelper(dlmmSolUsdc, METEORA_DLMM_PROGRAM_ID),
+      getActiveBinArrayHelper(dlmmUsdcUsdt, METEORA_DLMM_PROGRAM_ID),
+      dlmmSolUsdc.getBinArrays(),
+      dlmmUsdcUsdt.getBinArrays(),
+      CONNECTION.getTokenAccountBalance(userUsdtAta) // Fetch pre-balance upfront
+    ]);
+
     // We are resetting/adding another 1 wSOL for this test via airdrop if needed, but we started with 10.
     const amountIn = new BN(1 * 10 ** 9);
 
-    const binArraysSolUsdc = await dlmmSolUsdc.getBinArrays(); // true = swap X to Y (assuming SOL is X)
     const activeBinArrayAccount1 = binArraysSolUsdc.find(
       (binArray) => binArray.publicKey.toBase58() === activeBinArray1.activeBinArrayPubkey.toBase58()
     )!;
     const quoteSolUsdc = dlmmSolUsdc.swapQuote(amountIn, true, new BN(10), [activeBinArrayAccount1]);
 
-    
-    const binArraysUsdcUsdt = await dlmmUsdcUsdt.getBinArrays(); // true = swap X to Y (assuming USDC is X)
-        const activeBinArrayAccount2 = binArraysUsdcUsdt.find(
+    const activeBinArrayAccount2 = binArraysUsdcUsdt.find(
       (binArray) => binArray.publicKey.toBase58() === activeBinArray2.activeBinArrayPubkey.toBase58()
     )!;
 
@@ -306,7 +304,6 @@ describe('Meteora Two Swaps', () => {
     tx.recentBlockhash = (await CONNECTION.getLatestBlockhash()).blockhash;
     tx.feePayer = user.publicKey;
 
-    const preUsdt = await CONNECTION.getTokenAccountBalance(userUsdtAta);
     const sig = await sendAndConfirmTransaction(CONNECTION, tx, [user], { skipPreflight: true });
     console.log(`Test 2 Tx Sig: ${sig}`);
 

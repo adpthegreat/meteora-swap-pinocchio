@@ -5,10 +5,10 @@
   "scripts": {
     "generate:clients": "zx ./scripts/generate-clients.mjs",
     "generate:idl": "shank idl -r program -o idl",
-    "test": "mocha --require tsx tests/**/*.test.ts --timeout 120000",
-    "test:integration": "ts-mocha -p tsconfig.json tests/test.ts --timeout 120000",
-    "test:1": "mocha --require tsx tests/test.ts -g 'Test 1' --timeout 120000",
-    "test:2": "mocha --require tsx tests/test.ts -g 'Test 2' --timeout 120000"
+    "test": "mocha --require tsx tests/**/*.test.ts --timeout 100000",
+    "test:integration": "ts-mocha -p tsconfig.json tests/test.ts --timeout 100000",
+    "test:1": "mocha --require tsx tests/test.ts -g 'Test 1' --timeout 100000",
+    "test:2": "mocha --require tsx tests/test.ts -g 'Test 2' --timeout 100000"
   },
   "devDependencies": {
     "@codama/nodes-from-anchor": "^1.1.6",

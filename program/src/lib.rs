@@ -8,12 +8,14 @@ pub mod cpi;
 #[cfg(not(feature = "no-entrypoint"))]
 pub mod entrypoint;
 
+#[cfg(not(feature = "cpi-scratch"))]
 use core::mem::MaybeUninit;
-// TODO update with your program ID
-pinocchio_pubkey::declare_id!("328qAGodo42PEsCjQyJBsyEc4pz3HsqBkVJFDFJkF8CQ");
+pinocchio_pubkey::declare_id!("7N3hMx1N2GQtYFohgrhD2ZDeqv3bnwTW4xXdz3kHmfXv");
 
+#[cfg(not(feature = "cpi-scratch"))]
 pub(crate) const UNINIT_BYTE: MaybeUninit<u8> = MaybeUninit::<u8>::uninit();
 
+#[cfg(not(feature = "cpi-scratch"))]
 /// Write `source` bytes into a `MaybeUninit<u8>` destination slice.
 #[inline(always)]
 pub(crate) fn write_bytes(destination: &mut [MaybeUninit<u8>], source: &[u8]) {

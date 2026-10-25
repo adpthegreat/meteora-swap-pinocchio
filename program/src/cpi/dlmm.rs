@@ -1,10 +1,10 @@
 use core::{mem::MaybeUninit, slice::from_raw_parts};
-use core::mem;
 
 use pinocchio::{
     account_info::AccountInfo,
     instruction::{AccountMeta, Instruction, Signer},
-    program::invoke_signed,
+    cpi::invoke_signed_with_bounds,
+    program_error::ProgramError,
     pubkey::Pubkey,
     ProgramResult,
 };
@@ -57,7 +57,9 @@ impl Swap2<'_> {
 
     pub fn invoke_signed(&self, signers: &[Signer]) -> ProgramResult {
         let num_bin_arrays = self.bin_arrays.len();
-        debug_assert!(num_bin_arrays <= MAX_BIN_ARRAYS, "too many bin arrays");
+        if num_bin_arrays > MAX_BIN_ARRAYS {
+            return Err(ProgramError::InvalidArgument);
+        }
         // [0..8]   discriminator
         // [8..16]  amount_in         u64 le
         // [16..24] min_amount_out    u64 le
@@ -130,12 +132,10 @@ impl Swap2<'_> {
             infos[FIXED_ACCOUNTS + i].write(bin_array);
         }
 
-        // SAFETY: every slot is now initialised.
-        // MaybeUninit<T> is guaranteed to have the same layout as T,
-        // so transmuting [MaybeUninit<&AccountInfo>; N] → [&AccountInfo; N]
-        // is defined behaviour once all slots are written.
-        let infos: [&AccountInfo; MAX_ACCOUNTS] = unsafe { mem::transmute(infos) };
-        
+        // SAFETY: slots 0..total were written above. Only those are viewed as
+        // `&AccountInfo`; the unwritten tail stays `MaybeUninit` (see SOLANA.md).
+        let infos = unsafe { from_raw_parts(infos.as_ptr() as *const &AccountInfo, total) };
+
         let instruction = Instruction {
             program_id: &ID,
             accounts: unsafe {
@@ -146,10 +146,6 @@ impl Swap2<'_> {
             },
         };
 
-        invoke_signed(
-            &instruction,
-            &infos,
-            signers,
-        )
+        invoke_signed_with_bounds::<MAX_ACCOUNTS>(&instruction, infos, signers)
     }
 }

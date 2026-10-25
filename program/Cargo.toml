@@ -9,6 +9,8 @@ crate-type = ["cdylib", "lib"]
 [features]
 no-entrypoint = []
 idl = []
+# Build the DLMM CPI with CpiScratch buffers instead of MaybeUninit.
+cpi-scratch = []
 
 [dependencies]
 pinocchio = { workspace = true }

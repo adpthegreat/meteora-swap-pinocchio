@@ -8,12 +8,12 @@ import {
   TransactionInstruction,
 } from '@solana/web3.js';
 import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID } from '@solana/spl-token';
-import DLMM from '@meteora-ag/dlmm-sdk-public';
+import DLMM from '@meteora-ag/dlmm';
 import BN from 'bn.js';
 import { assert } from 'chai';
 import { getSwapInstruction } from '../clients/js/src/generated/instructions/swap.ts';
 import { getSwap2Instruction } from '../clients/js/src/generated/instructions/swap2.ts';
-import { getActiveBinArrayHelper, surfnetAirdrop, surfnetTokenAirdrop } from './utils.ts';
+import { getActiveBinArrayHelper, surfnetAirdrop, surfnetTokenAirdrop, withRetry } from './utils.ts';
 import { address } from '@solana/kit';
 
 // Connect to local Surfpool instance (mirrors mainnet)
@@ -64,8 +64,8 @@ describe('Meteora Two Swaps', () => {
     ]);
 
     const [dlmm1, dlmm2] = await Promise.all([
-      DLMM.create(CONNECTION, WSOL_USDC_POOL),
-      DLMM.create(CONNECTION, USDC_USDT_POOL)
+      withRetry('DLMM.create SOL/USDC', () => DLMM.create(CONNECTION, WSOL_USDC_POOL)),
+      withRetry('DLMM.create USDC/USDT', () => DLMM.create(CONNECTION, USDC_USDT_POOL))
     ]);
     
     dlmmSolUsdc = dlmm1;
@@ -80,27 +80,19 @@ describe('Meteora Two Swaps', () => {
     const [
       activeBinArray1,
       activeBinArray2,
-      binArraysSolUsdc,
-      binArraysUsdcUsdt,
       preUsdt
     ] = await Promise.all([
-      getActiveBinArrayHelper(dlmmSolUsdc, METEORA_DLMM_PROGRAM_ID),
-      getActiveBinArrayHelper(dlmmUsdcUsdt, METEORA_DLMM_PROGRAM_ID),
-      dlmmSolUsdc.getBinArrays(),
-      dlmmUsdcUsdt.getBinArrays(),
+      withRetry('active bin array SOL/USDC', () => getActiveBinArrayHelper(dlmmSolUsdc, METEORA_DLMM_PROGRAM_ID)),
+      withRetry('active bin array USDC/USDT', () => getActiveBinArrayHelper(dlmmUsdcUsdt, METEORA_DLMM_PROGRAM_ID)),
       CONNECTION.getTokenAccountBalance(userUsdtAta) // Fetch pre-balance upfront
     ]);
     
-    const activeBinArrayAccount1 = binArraysSolUsdc.find(
-      (binArray) => binArray.publicKey.toBase58() === activeBinArray1.activeBinArrayPubkey.toBase58()
-    )!;
+    const activeBinArrayAccount1 = activeBinArray1.activeBinArray;
 
     const quoteSolUsdc = dlmmSolUsdc.swapQuote(amountIn, true, new BN(10), [activeBinArrayAccount1]);
     const solUsdcBinArraysUsed = quoteSolUsdc.binArraysPubkey;
 
-    const activeBinArrayAccount2 = binArraysUsdcUsdt.find(
-      (binArray) => binArray.publicKey.toBase58() === activeBinArray2.activeBinArrayPubkey.toBase58()
-    )!;
+    const activeBinArrayAccount2 = activeBinArray2.activeBinArray;
 
     const quoteUsdcUsdt = dlmmUsdcUsdt.swapQuote(quoteSolUsdc.minOutAmount, true, new BN(100), [activeBinArrayAccount2]);
     const usdcUsdtBinArraysUsed = quoteUsdcUsdt.binArraysPubkey;
@@ -205,47 +197,48 @@ describe('Meteora Two Swaps', () => {
      const [
       activeBinArray1,
       activeBinArray2,
-      binArraysSolUsdc,
-      binArraysUsdcUsdt,
       preUsdt
     ] = await Promise.all([
-      getActiveBinArrayHelper(dlmmSolUsdc, METEORA_DLMM_PROGRAM_ID),
-      getActiveBinArrayHelper(dlmmUsdcUsdt, METEORA_DLMM_PROGRAM_ID),
-      dlmmSolUsdc.getBinArrays(),
-      dlmmUsdcUsdt.getBinArrays(),
+      withRetry('active bin array SOL/USDC', () => getActiveBinArrayHelper(dlmmSolUsdc, METEORA_DLMM_PROGRAM_ID)),
+      withRetry('active bin array USDC/USDT', () => getActiveBinArrayHelper(dlmmUsdcUsdt, METEORA_DLMM_PROGRAM_ID)),
       CONNECTION.getTokenAccountBalance(userUsdtAta) // Fetch pre-balance upfront
     ]);
 
     // We are resetting/adding another 1 wSOL for this test via airdrop if needed, but we started with 10.
     const amountIn = new BN(1 * 10 ** 9);
 
-    const activeBinArrayAccount1 = binArraysSolUsdc.find(
-      (binArray) => binArray.publicKey.toBase58() === activeBinArray1.activeBinArrayPubkey.toBase58()
-    )!;
+    const activeBinArrayAccount1 = activeBinArray1.activeBinArray;
     const quoteSolUsdc = dlmmSolUsdc.swapQuote(amountIn, true, new BN(10), [activeBinArrayAccount1]);
 
-    const activeBinArrayAccount2 = binArraysUsdcUsdt.find(
-      (binArray) => binArray.publicKey.toBase58() === activeBinArray2.activeBinArrayPubkey.toBase58()
-    )!;
+    const activeBinArrayAccount2 = activeBinArray2.activeBinArray;
 
     const quoteUsdcUsdt = dlmmUsdcUsdt.swapQuote(quoteSolUsdc.minOutAmount, true, new BN(100), [activeBinArrayAccount2]);
     
     const usdcUsdtBinArraysUsed = quoteUsdcUsdt.binArraysPubkey;
 
-    // 1. Build Instruction 0 (Direct DLMM SDK call)
-    // The SDK swap() method returns a transaction. We extract the first instruction.
-    const dlmmSwapTx = await dlmmSolUsdc.swap({
-      inToken: WSOL_MINT,
-      outToken: USDC_MINT,
-      inAmount: amountIn,
-      minOutAmount: quoteSolUsdc.minOutAmount,
-      lbPair: WSOL_USDC_POOL,
-      user: user.publicKey,
-      binArraysPubkey: [activeBinArray1.activeBinArrayPubkey] //binArraysSolUsdc.map(b => b.publicKey),
-    });
-
-    // Extract the actual Meteora Swap instruction (filter out compute budget/token ATA setups if any exist in the builder)
-    const dlmmDirectIx = dlmmSwapTx.instructions.find(ix => ix.programId.equals(METEORA_DLMM_PROGRAM_ID))!;
+    // 1. Build Instruction 0 (Direct DLMM `swap`)
+    // Our program's swap2 rejects a preceding DLMM `swap2`, which is what dlmm.swap() builds
+    // now, so build `swap` from the SDK's IDL. The user's ATAs already exist from setup.
+    const solUsdcState = dlmmSolUsdc.lbPair;
+    const dlmmDirectIx = await dlmmSolUsdc.program.methods
+      .swap(amountIn, quoteSolUsdc.minOutAmount)
+      .accountsPartial({
+        lbPair: WSOL_USDC_POOL,
+        binArrayBitmapExtension: dlmmSolUsdc.binArrayBitmapExtension?.publicKey ?? null,
+        reserveX: solUsdcState.reserveX,
+        reserveY: solUsdcState.reserveY,
+        userTokenIn: userWsolAta,
+        userTokenOut: userUsdcAta,
+        tokenXMint: solUsdcState.tokenXMint,
+        tokenYMint: solUsdcState.tokenYMint,
+        oracle: solUsdcState.oracle,
+        hostFeeIn: null,
+        user: user.publicKey,
+        tokenXProgram: TOKEN_PROGRAM_ID,
+        tokenYProgram: TOKEN_PROGRAM_ID,
+      })
+      .remainingAccounts([{ pubkey: activeBinArray1.activeBinArrayPubkey, isSigner: false, isWritable: true }])
+      .instruction();
 
     // 2. Build Instruction 1 (Our program `swap2`)
     const state = dlmmUsdcUsdt.lbPair;

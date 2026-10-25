@@ -23,7 +23,7 @@ import {
 } from "../instructions";
 
 export const METEORASWAP_PROGRAM_ADDRESS =
-  "328qAGodo42PEsCjQyJBsyEc4pz3HsqBkVJFDFJkF8CQ" as Address<"328qAGodo42PEsCjQyJBsyEc4pz3HsqBkVJFDFJkF8CQ">;
+  "7N3hMx1N2GQtYFohgrhD2ZDeqv3bnwTW4xXdz3kHmfXv" as Address<"7N3hMx1N2GQtYFohgrhD2ZDeqv3bnwTW4xXdz3kHmfXv">;
 
 export enum MeteoraswapInstruction {
   Swap,
@@ -46,7 +46,7 @@ export function identifyMeteoraswapInstruction(
 }
 
 export type ParsedMeteoraswapInstruction<
-  TProgram extends string = "328qAGodo42PEsCjQyJBsyEc4pz3HsqBkVJFDFJkF8CQ",
+  TProgram extends string = "7N3hMx1N2GQtYFohgrhD2ZDeqv3bnwTW4xXdz3kHmfXv",
 > =
   | ({
       instructionType: MeteoraswapInstruction.Swap;

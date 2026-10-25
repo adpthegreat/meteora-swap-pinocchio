@@ -15,7 +15,7 @@
     "@codama/renderers-js": "^1.0.0",
     "@codama/renderers-rust": "^1.0.0",
     "@solana/spl-token": "0.4.9",
-    "@solana/web3.js": "^1.98.4",
+    "@solana/web3.js": "^1.99.0",
     "@types/bn.js": "^5.2.0",
     "@types/chai": "^5.2.3",
     "@types/mocha": "^10.0.10",
@@ -33,7 +33,7 @@
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e",
   "dependencies": {
     "@coral-xyz/anchor": "^0.32.1",
-    "@meteora-ag/dlmm-sdk-public": "^1.0.1",
+    "@meteora-ag/dlmm": "1.9.14",
     "@solana/kit": "^6.1.0",
     "bn": "^1.0.5",
     "chai": "^6.2.2"
